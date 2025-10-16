@@ -1,0 +1,483 @@
+/* ===== Improved Hero layout & visual polish ===== */
+
+/* Card wrapper */
+.hero-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98));
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(25,25,50,0.07);
+  max-width: 1100px;          /* constrain wide screens */
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 420px; /* left content + right illustration column */
+  gap: 28px;
+  align-items: center;
+  overflow: visible;
+}
+.site-header {
+  position: relative; /* keep existing flow unless you use sticky header */
+  z-index: 20;
+}
+
+.landing-main {
+  margin-top: 22px;   /* main gap between header and hero */
+  padding-top: 4px;   /* tiny extra space so shadow doesn't touch header */
+}
+
+/* Slight extra spacing specifically for the hero card */
+.hero-card {
+  margin-top: 6px;
+  transition: transform .18s ease;
+}
+
+/* On small screens the illustration stacks below the text */
+@media (max-width: 980px) {
+  .hero-card {
+    grid-template-columns: 1fr;
+    padding: 28px;
+    gap: 18px;
+  }
+}
+
+/* Left column content wrapper (keeps text width comfortable) */
+.hero-card > .landing-left-content {
+  max-width: 680px;
+}
+
+/* Title & copy */
+.hero-title {
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.02;
+  margin: 0 0 14px 0;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-weight: 800;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero-sub {
+  color: var(--muted);
+  margin: 0 0 22px 0;
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+/* CTA group — primary + secondary + hint */
+.cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.btn-primary.big {
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 14px 30px rgba(91,107,230,0.14);
+  transform-origin: center;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.btn-primary.big:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(91,107,230,0.18);
+}
+
+.btn-outline {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(20,20,40,0.06);
+  background: transparent;
+  min-width: 128px;
+  text-align: center;
+}
+
+/* Smaller screens: make CTAs full width stacked */
+@media (max-width: 540px) {
+  .cta-group { flex-direction: column; align-items: stretch; }
+  .btn-primary.big, .btn-outline { width: 100%; }
+}
+
+/* CTA hint text */
+.cta-hint {
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+/* Trusted row */
+.trust-row {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Badges area on the right of 'Trusted by' */
+.badges {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.badges span {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: rgba(10,10,20,0.04);
+  color: var(--text);
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.6);
+}
+
+/* Feature grid (chips) — neat 3-column grid that collapses */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(250,250,250,0.9), rgba(245,245,245,0.9));
+  border: 1px solid rgba(10,10,30,0.03);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+
+.feature:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(20,20,60,0.06);
+}
+
+/* Make features single column on narrow screens */
+@media (max-width: 768px) {
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .feature-grid { grid-template-columns: 1fr; }
+}
+
+/* Right column — illustration container styling */
+.hero-illus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none; /* purely decorative */
+}
+
+/* Respectable max size for illustration */
+.hero-svg-wrap { width: 100%; max-width: 420px; transform-origin: center; }
+
+/* Floating bits positions smaller on small screens */
+.floating-assets .bit { width: 44px; height: 44px; }
+@media (max-width: 520px) { .floating-assets { margin-top: -12px; } .floating-assets .bit { width: 36px; height: 36px; } }
+
+/* subtle footer spacing */
+.landing-footer { margin-top: 20px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Accessibility: increase focus visibility on CTAs */
+.btn-primary.big:focus, .btn-outline:focus {
+  outline: 3px solid rgba(91,107,230,0.18);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+/* ===== Chat Preview styles (right column) ===== */
+
+.hero-card {
+  /* keep two-column layout: left content + right preview */
+  display: grid;
+  grid-template-columns: 1fr 380px; /* left content and chat preview width */
+  gap: 28px;
+  align-items: start;
+}
+
+.hero-right-col {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Chat preview card */
+.chat-preview-card {
+  width: 360px;
+  background: linear-gradient(180deg,#fff,#fbfbfb);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(20,20,60,0.06);
+  padding: 14px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* header */
+.cp-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.cp-title { font-weight:700; font-size:16px; color:var(--text); }
+.cp-badge { font-size:12px; padding:6px 8px; border-radius:999px; background:rgba(0,0,0,0.04); color:var(--text); }
+
+/* sections */
+.cp-section { padding-top:4px; border-top: 1px solid rgba(0,0,0,0.03); margin-top:6px; }
+.cp-section-title { font-weight:700; font-size:13px; margin-bottom:6px; color: #111; }
+.cp-summary { color: var(--muted); font-size:13px; }
+
+/* ingredients */
+.cp-ingredients { margin:0; padding-left:18px; color:var(--text); font-size:14px; }
+.cp-ingredients li { margin-bottom:6px; }
+
+/* steps */
+.cp-steps { margin:0; padding-left:18px; color:var(--text); font-size:14px; }
+.cp-steps li { margin-bottom:8px; display:flex; gap:8px; align-items:flex-start; }
+
+/* step index styling */
+.step-index { font-weight:700; color: var(--muted); min-width:20px; }
+
+/* footer actions */
+.cp-footer { display:flex; gap:10px; margin-top:6px; justify-content:flex-end; }
+.btn-primary.small {
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:14px;
+}
+.btn-outline.small {
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:14px;
+  border:1px solid rgba(0,0,0,0.06);
+  background:transparent;
+}
+
+/* responsive: collapse to single column on narrow screens */
+@media (max-width: 980px) {
+  .hero-card { grid-template-columns: 1fr; }
+  .hero-right-col { order: 2; }
+  .chat-preview-card { width: 100%; max-width: 520px; }
+}
+/* ===== Theme-aware variables (light = default) ===== */
+:root {
+  /* backgrounds & surfaces */
+  --page-bg: #ffffff;
+  --surface: linear-gradient(180deg,#ffffff,#fbfbfb);
+  --card-bg: #ffffff;
+  --muted-surface: rgba(10,10,30,0.03);
+
+  /* text */
+  --text: #0b0b0d;
+  --muted: #6b6f76;
+  --muted-2: #9aa0a6;
+
+  /* accents */
+  --accent-from: #5b6be8;
+  --accent-to: #ff4d7e;
+  --accent-shadow: rgba(91,107,230,0.14);
+
+  /* ui elements */
+  --chip-bg: rgba(10,10,30,0.035);
+  --chip-border: rgba(10,10,30,0.03);
+  --btn-ghost-border: rgba(10,10,30,0.06);
+  --card-shadow: 0 18px 40px rgba(20,20,60,0.06);
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --page-bg: #08080a;
+  --surface: linear-gradient(180deg,#0b0b0d,#0b0b0d);
+  --card-bg: linear-gradient(180deg,#0b0b0d,#0b0b10);
+  --muted-surface: rgba(255,255,255,0.02);
+
+  --text: #e9eef8;
+  --muted: #98a0b0;
+  --muted-2: #7e8aa0;
+
+  --accent-from: #7388ff;
+  --accent-to: #ff86a1;
+  --accent-shadow: rgba(115,136,255,0.12);
+
+  --chip-bg: rgba(255,255,255,0.03);
+  --chip-border: rgba(255,255,255,0.04);
+  --btn-ghost-border: rgba(255,255,255,0.06);
+  --card-shadow: 0 18px 40px rgba(0,0,0,0.6);
+}
+
+/* Apply page bg */
+body {
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+/* Hero card surface */
+.hero-card {
+  background: var(--card-bg);
+  background-image: var(--surface);
+  box-shadow: var(--card-shadow);
+  color: var(--text);
+}
+
+/* Chat preview card */
+.chat-preview-card {
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: var(--card-shadow);
+}
+
+/* CTAs */
+.btn-primary.big {
+  background: linear-gradient(90deg,var(--accent-from),var(--accent-to));
+  box-shadow: 0 14px 30px var(--accent-shadow);
+  color: #fff;
+}
+
+.btn-outline {
+  border: 1px solid var(--btn-ghost-border);
+  background: transparent;
+  color: var(--text);
+}
+
+/* Small variant */
+.btn-primary.small {
+  background: linear-gradient(90deg,var(--accent-from),var(--accent-to));
+  color: #fff;
+}
+.btn-outline.small {
+  border: 1px solid var(--btn-ghost-border);
+  color: var(--text);
+}
+
+/* Badges and chips */
+.badges span,
+.feature {
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--text);
+}
+
+/* Feature hover in dark/light */
+.feature:hover {
+  box-shadow: 0 8px 20px rgba(20,20,60,0.06);
+  transform: translateY(-4px);
+}
+
+/* CTA hint & muted text */
+.cta-hint,
+.cp-summary,
+.mp-step.dim {
+  color: var(--muted);
+}
+
+/* Mini preview card specifics */
+.mini-preview {
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  color: var(--text);
+}
+
+/* Buttons focus visible adjusted for themes */
+.btn-primary.big:focus, .btn-outline:focus,
+.btn-primary.small:focus, .btn-outline.small:focus {
+  outline: 3px solid rgba(91,107,230,0.14);
+  outline-offset: 4px;
+}
+
+/* Chat preview header / badge */
+.cp-badge {
+  background: var(--chip-bg);
+  color: var(--text);
+  border: 1px solid var(--chip-border);
+}
+
+/* Icons & mini icon background */
+.mini-icon {
+  background: var(--card-bg);
+  box-shadow: 0 8px 18px rgba(20,20,60,0.06);
+}
+
+/* subtle divider color */
+.cp-section {
+  border-top: 1px solid rgba(0,0,0,0.03);
+}
+[data-theme="dark"] .cp-section {
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .drip-wrap, .floating-assets img, .mini-icon, .hero-svg-wrap, .plate-wrap {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Ensure contrast for small text in dark mode */
+[data-theme="dark"] .cta-hint,
+[data-theme="dark"] .cp-summary {
+  color: var(--muted-2);
+}
+
+/* Optional: invert subtle svg fills for dark mode (if your SVGs use currentColor) */
+[data-theme="dark"] .hero-svg,
+[data-theme="dark"] .bottle-svg,
+[data-theme="dark"] .plate-svg {
+  filter: none;
+}
+
+/* End theme patch */
+
+/* RIGHT SECTION: stronger white text in dark mode for preview card */
+[data-theme="dark"] .hero-right-col,
+[data-theme="dark"] .hero-right-col .chat-preview-card,
+[data-theme="dark"] .chat-preview-card .cp-title,
+[data-theme="dark"] .chat-preview-card .cp-section-title,
+[data-theme="dark"] .chat-preview-card .cp-summary,
+[data-theme="dark"] .chat-preview-card .cp-ingredients,
+[data-theme="dark"] .chat-preview-card .cp-steps,
+[data-theme="dark"] .chat-preview-card .cp-footer,
+[data-theme="dark"] .chat-preview-card .cp-badge {
+  color: #ffffff;
+}
+
+/* keep small helper / muted text a little softer (not pure white) */
+[data-theme="dark"] .chat-preview-card .cp-summary,
+[data-theme="dark"] .chat-preview-card .mp-step.dim,
+[data-theme="dark"] .chat-preview-card .cta-hint {
+  color: #d6dbe6; /* slightly muted white */
+}
+
+/* ensure section titles are clearly visible */
+[data-theme="dark"] .chat-preview-card .cp-section-title {
+  color: #ffffff;
+  opacity: 0.98;
+}
+
+/* adjust badge background to be subtle on dark */
+[data-theme="dark"] .chat-preview-card .cp-badge {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.06);
+}
+
+/* keep buttons readable */
+[data-theme="dark"] .chat-preview-card .btn-outline.small,
+[data-theme="dark"] .chat-preview-card .btn-primary.small {
+  color: #fff;
+}
+
+/* If you prefer absolutely everything in the right card to be pure white,
+   replace above selectors with: .chat-preview-card { color: #fff !important; } */

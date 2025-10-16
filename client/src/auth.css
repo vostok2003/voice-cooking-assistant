@@ -1,0 +1,143 @@
+/* ===== Base Page ===== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* header stays on top */
+  /* background: var(--bg-gradient); */
+  font-family: 'Inter', sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ===== Centered wrapper (below header) ===== */
+.auth-wrapper {
+  flex: 1; /* take remaining height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ===== Auth Form Card ===== */
+.auth-form {
+  background: var(--card-bg);
+  padding: 40px 35px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fadeInUp 0.6s ease;
+}
+
+.auth-form h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--heading-color);
+}
+
+/* ===== Labels & Inputs ===== */
+.auth-form label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: var(--label-color);
+}
+
+.auth-form input {
+  padding: 12px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  outline: none;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.auth-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* ===== Primary Button ===== */
+.btn-primary {
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+}
+
+/* ===== Links ===== */
+.auth-form p {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.auth-form a {
+  color: var(--link-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-form a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* ===== Light Theme (match landing) ===== */
+:root {
+  --bg-gradient: linear-gradient(180deg, #ffffff, #f8fafc, #f1f5f9);
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --heading-color: #111827;
+  --label-color: #475569;
+  --input-bg: #f9fafb;
+  --input-border: #cbd5e1;
+  --link-color: #6d28d9;
+  --primary: #2563eb;
+  --focus-ring: rgba(37, 99, 235, 0.2);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Dark Theme (match landing) ===== */
+[data-theme="dark"] {
+  --bg-gradient: linear-gradient(180deg, #0f172a, #1e293b, #334155);
+  --card-bg: #1e293b;
+  --text-color: #f1f5f9;
+  --heading-color: #f8fafc;
+  --label-color: #cbd5e1;
+  --input-bg: #334155;
+  --input-border: #475569;
+  --link-color: #c084fc;
+  --primary: #3b82f6;
+  --focus-ring: rgba(59, 130, 246, 0.3);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,61 @@
+:root {
+  --bg: #ffffff;
+  --text: #111;
+  --muted: #666;
+  --accent: linear-gradient(90deg,#5b6be8,#ff4d7e);
+}
+
+[data-theme="dark"] {
+  --bg: #0b0b0d;
+  --text: #eee;
+  --muted: #9aa;
+}
+
+body {
+  margin:0;
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.site-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.logo { font-weight:700; }
+.theme-btn { background:none; border: none; font-size:20px; cursor:pointer; margin-right:10px; }
+.btn, .btn-primary { padding:10px 16px; border-radius:8px; border:none; cursor:pointer; background: #2b6bff; color:white; }
+.btn-outline { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:transparent; }
+.btn-sm { padding:6px 8px; border-radius:6px; margin:0 6px; }
+.btn-danger { background:#e63946; color:#fff; padding:8px 12px; border-radius:6px; }
+.btn-ghost { background:transparent; border:1px solid #ccc; padding:6px 10px; }
+
+.landing-main { display:flex; min-height:80vh; }
+.landing-left { flex:1; display:flex; align-items:center; justify-content:center; }
+.landing-right { flex:1; padding:60px; display:flex; flex-direction:column; gap:16px; justify-content:center; }
+.cta-row { display:flex; gap:12px; margin-top:20px; }
+
+.auth-page, .dashboard, .chat-page { min-height:80vh; }
+.auth-form { max-width:420px; margin:40px auto; display:flex; flex-direction:column; gap:10px; padding:24px; border-radius:8px; background: rgba(0,0,0,0.03); }
+.auth-form input { padding:10px; border-radius:6px; border:1px solid #ddd; }
+
+.dashboard-main { display:flex; gap:20px; padding:20px; }
+.dashboard-left { flex: 2; }
+.dashboard-right { flex:1; }
+
+.recipes-list { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+.recipe-card { display:flex; justify-content:space-between; border:1px solid #eee; padding:10px; border-radius:8px; align-items:center; }
+
+.confirm-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; }
+.confirm-box { background:var(--bg); padding:20px; border-radius:8px; width:320px; }
+
+.chat-window { max-width:900px; margin:20px auto; display:flex; flex-direction:column; height:70vh; }
+.chat-messages { flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.msg { max-width:80%; padding:8px 12px; border-radius:8px; }
+.msg.user { margin-left:auto; background:#e6f0ff; }
+.msg.assistant { background:#f4f4f4; }
+.chat-input { display:flex; gap:8px; border-top:1px solid #eee; padding:10px; }
+.chat-input input { flex:1; padding:10px; border-radius:8px; border:1px solid #ddd; }

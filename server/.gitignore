@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.dist/
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Caches
+.cache/
+.eslintcache
+.stylelintcache
+.cache-loader/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temp files
+.tmp/
+tmp/
+
+# Docker
+.docker/
+docker-data/
+
+# Prisma / SQLite (if used)
+prisma/*.db
+prisma/*.db-journal
+
+# Terraform (if used)
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+
+# Misc
+*.local
+.sourcemaps/
