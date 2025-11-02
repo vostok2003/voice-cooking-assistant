@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header';
 import api from '../utils/api';
 import { useParams } from 'react-router-dom';
@@ -8,10 +8,39 @@ export default function ChatPage(){
   const { id } = useParams(); // recipe id (optional)
   const [history, setHistory] = useState([]);
   const [recipe, setRecipe] = useState(null);
+  const synthRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize speech synthesis
+    synthRef.current = window.speechSynthesis;
+    return () => {
+      // Cleanup: stop any speaking when component unmounts
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (id) loadRecipe(id);
   }, [id]);
+
+  const speakText = (text) => {
+    if (!synthRef.current || !text) return;
+    
+    // Stop any ongoing speech
+    synthRef.current.cancel();
+    
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9; // Slightly slower for better comprehension
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Speak the text
+    synthRef.current.speak(utterance);
+  };
 
   const loadRecipe = async (rid) => {
     try {
@@ -47,6 +76,13 @@ export default function ChatPage(){
       }
       res.data.steps?.forEach(s => assistantParts.push({ role: 'assistant', text: s.instruction }));
       setHistory(h => [...h, { role: 'user', text: prompt }, ...assistantParts]);
+      
+      // Speak the response back to the user
+      // Combine all assistant parts into one text
+      const fullResponse = assistantParts.map(part => part.text).join('\n\n');
+      if (fullResponse) {
+        speakText(fullResponse);
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to fetch from Gemini');

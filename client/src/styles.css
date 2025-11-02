@@ -57,5 +57,75 @@ body {
 .msg { max-width:80%; padding:8px 12px; border-radius:8px; }
 .msg.user { margin-left:auto; background:#e6f0ff; }
 .msg.assistant { background:#f4f4f4; }
-.chat-input { display:flex; gap:8px; border-top:1px solid #eee; padding:10px; }
+.chat-input { display:flex; gap:8px; border-top:1px solid #eee; padding:10px; align-items:center; }
 .chat-input input { flex:1; padding:10px; border-radius:8px; border:1px solid #ddd; }
+.chat-input input.listening { 
+  border-color: #ef4444; 
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+/* Microphone button styles */
+.mic-button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+.mic-button:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+.mic-button.listening {
+  background: #fee2e2;
+  border-color: #ef4444;
+  animation: pulse-button 1.5s ease-in-out infinite;
+}
+.mic-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
+}
+@keyframes pulse-button {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+[data-theme="dark"] .chat-input {
+  border-top-color: #333;
+}
+[data-theme="dark"] .chat-input input {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #eee;
+}
+[data-theme="dark"] .chat-input input.listening {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+[data-theme="dark"] .mic-button {
+  background: #1a1a1a;
+  border-color: #444;
+}
+[data-theme="dark"] .mic-button:hover {
+  background: #2a2a2a;
+  border-color: #555;
+}
+[data-theme="dark"] .mic-button.listening {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+[data-theme="dark"] .mic-button svg {
+  fill: #eee;
+}
