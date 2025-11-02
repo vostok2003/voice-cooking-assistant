@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CookMode from './CookMode';
 
-export default function ChatWindow({ history = [], onSend }) {
+export default function ChatWindow({ history = [], onSend, isSpeaking = false, onStopSpeaking, recipe }) {
   const [text, setText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
@@ -134,6 +135,24 @@ export default function ChatWindow({ history = [], onSend }) {
           placeholder={isListening ? "Listening... Speak now..." : "Type a prompt to ask Gemini or use microphone..."}
           className={isListening ? 'listening' : ''}
         />
+        {isSpeaking && onStopSpeaking && (
+          <button
+            type="button"
+            onClick={onStopSpeaking}
+            className="stop-button"
+            title="Stop speaking"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="#ef4444"
+            >
+              <rect x="6" y="6" width="12" height="12" rx="2"/>
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           onClick={toggleListening}
@@ -158,6 +177,12 @@ export default function ChatWindow({ history = [], onSend }) {
         </button>
         <button type="submit" className="btn-primary">Send</button>
       </form>
+
+      <CookMode 
+        recipe={recipe} 
+        onSpeak={() => {}} 
+        onStopSpeaking={onStopSpeaking}
+      />
     </div>
   );
 }

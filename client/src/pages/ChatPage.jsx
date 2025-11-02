@@ -8,6 +8,7 @@ export default function ChatPage(){
   const { id } = useParams(); // recipe id (optional)
   const [history, setHistory] = useState([]);
   const [recipe, setRecipe] = useState(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef(null);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function ChatPage(){
     
     // Stop any ongoing speech
     synthRef.current.cancel();
+    setIsSpeaking(false);
     
     // Create speech utterance
     const utterance = new SpeechSynthesisUtterance(text);
@@ -38,8 +40,28 @@ export default function ChatPage(){
     utterance.pitch = 1;
     utterance.volume = 1;
     
+    // Track when speech starts and ends
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+    
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+    
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+    };
+    
     // Speak the text
     synthRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
   };
 
   const loadRecipe = async (rid) => {
@@ -77,11 +99,21 @@ export default function ChatPage(){
       res.data.steps?.forEach(s => assistantParts.push({ role: 'assistant', text: s.instruction }));
       setHistory(h => [...h, { role: 'user', text: prompt }, ...assistantParts]);
       
-      // Speak the response back to the user
-      // Combine all assistant parts into one text
-      const fullResponse = assistantParts.map(part => part.text).join('\n\n');
+      // Speak the recipe response back to the user
+      // CookMode will cancel this speech when user clicks "Cook Now", so it's safe
+      const fullResponse = assistantParts.map(part => part.text).join('. ');
       if (fullResponse) {
-        speakText(fullResponse);
+        // Format for better speech: replace newlines with pauses, clean up text
+        const speechText = fullResponse
+          .replace(/\n/g, '. ')  // Replace newlines with periods and spaces
+          .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+          .replace(/\.\s*\./g, '.')  // Replace double periods with single
+          .trim();
+        
+        // Small delay to ensure recipe data is fully set
+        setTimeout(() => {
+          speakText(speechText);
+        }, 300);
       }
     } catch (err) {
       console.error(err);
@@ -92,7 +124,13 @@ export default function ChatPage(){
   return (
     <div className="chat-page">
       <Header />
-      <ChatWindow history={history} onSend={handleSendPrompt} recipe={recipe} />
+      <ChatWindow 
+        history={history} 
+        onSend={handleSendPrompt} 
+        recipe={recipe}
+        isSpeaking={isSpeaking}
+        onStopSpeaking={stopSpeaking}
+      />
     </div>
   );
 }

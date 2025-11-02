@@ -93,6 +93,30 @@ body {
   height: 20px;
 }
 
+/* Stop button styles */
+.stop-button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: #fee2e2;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  animation: pulse-button 1.5s ease-in-out infinite;
+}
+.stop-button:hover {
+  background: #fecaca;
+  border-color: #dc2626;
+}
+.stop-button svg {
+  width: 20px;
+  height: 20px;
+}
+
 @keyframes pulse-ring {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
@@ -128,4 +152,311 @@ body {
 }
 [data-theme="dark"] .mic-button svg {
   fill: #eee;
+}
+[data-theme="dark"] .stop-button {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+[data-theme="dark"] .stop-button:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: #dc2626;
+}
+[data-theme="dark"] .stop-button svg {
+  fill: #ef4444;
+}
+
+/* Cook Mode Styles */
+.cook-mode-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0 10px;
+}
+
+.btn-cook-now {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(90deg, #5b6be8, #ff4d7e);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(91, 107, 232, 0.3);
+}
+
+.btn-cook-now:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(91, 107, 232, 0.4);
+}
+
+.btn-cook-now:active {
+  transform: translateY(0);
+}
+
+.cook-mode-panel {
+  background: var(--bg);
+  border: 2px solid rgba(91, 107, 232, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cook-mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.cook-mode-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.btn-stop-cooking {
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.btn-stop-cooking:hover {
+  background: #dc2626;
+}
+
+.cook-progress {
+  margin-bottom: 24px;
+}
+
+.cook-progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.cook-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5b6be8, #ff4d7e);
+  transition: width 0.3s ease;
+}
+
+.cook-progress-text {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.cook-current-step {
+  background: rgba(91, 107, 232, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.cook-step-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #5b6be8;
+  margin-bottom: 12px;
+}
+
+.cook-step-instruction {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.cook-timer-section {
+  margin-top: 16px;
+}
+
+.cook-timer-display {
+  text-align: center;
+  padding: 20px;
+  background: rgba(91, 107, 232, 0.1);
+  border-radius: 8px;
+}
+
+.cook-timer-time {
+  font-size: 48px;
+  font-weight: 700;
+  color: #5b6be8;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cook-timer-label {
+  font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cook-waiting-status {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 77, 126, 0.1);
+  border-radius: 8px;
+}
+
+.cook-waiting-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  animation: pulse-button 1.5s ease-in-out infinite;
+}
+
+.cook-waiting-status > div:last-child {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.cook-recognition-error {
+  font-size: 0.85rem;
+  color: #ef4444;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #ef4444;
+}
+
+.cook-timer-info {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  padding: 12px;
+}
+
+.cook-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-skip-step,
+.btn-restart-timer,
+.btn-restart-recipe,
+.btn-test-speech,
+.btn-start-timer-manual,
+.btn-request-microphone {
+  flex: 1;
+  padding: 12px 20px;
+  border: 2px solid #5b6be8;
+  background: transparent;
+  color: #5b6be8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-start-timer-manual {
+  border-color: #10b981;
+  background: #10b981;
+  color: white;
+}
+
+.btn-start-timer-manual:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-request-microphone {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-request-microphone:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-test-speech {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.btn-test-speech:hover {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-skip-step {
+  border-color: #ff4d7e;
+  color: #ff4d7e;
+}
+
+.btn-skip-step:hover:not(:disabled) {
+  background: #ff4d7e;
+  color: white;
+}
+
+.btn-restart-timer:hover:not(:disabled),
+.btn-restart-recipe:hover {
+  background: #5b6be8;
+  color: white;
+}
+
+.btn-skip-step:disabled,
+.btn-restart-timer:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cook-complete {
+  text-align: center;
+  padding: 24px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+[data-theme="dark"] .cook-mode-panel {
+  border-color: rgba(91, 107, 232, 0.3);
+}
+
+[data-theme="dark"] .cook-mode-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .cook-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .cook-current-step {
+  background: rgba(91, 107, 232, 0.1);
+}
+
+[data-theme="dark"] .cook-timer-display {
+  background: rgba(91, 107, 232, 0.15);
+}
+
+[data-theme="dark"] .cook-waiting-status {
+  background: rgba(255, 77, 126, 0.15);
+}
+
+[data-theme="dark"] .cook-complete {
+  background: rgba(34, 197, 94, 0.15);
 }
