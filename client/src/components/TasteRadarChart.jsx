@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -44,14 +45,25 @@ const TasteRadarChart = () => {
     }
   };
 
-  if (loading) return <div className="taste-chart-loading">Loading taste profile...</div>;
+  if (loading) return (
+    <div className="taste-chart-loading">
+      <div className="chart-loading-spinner"></div>
+      <p>Generating radar chart...</p>
+    </div>
+  );
+  
   if (error) return <div className="taste-chart-error">{error}</div>;
   if (!tasteProfile) return <div className="taste-chart-empty">No taste profile data available</div>;
 
   // Check if all values are zero
   const hasPreferences = Object.values(tasteProfile).some(value => value > 0);
   if (!hasPreferences) {
-    return <div className="taste-chart-empty">No taste preferences recorded yet.</div>;
+    return (
+      <div className="taste-chart-empty">
+        <div className="chart-empty-icon">📊</div>
+        <p>No chart data available yet</p>
+      </div>
+    );
   }
 
   // Prepare data for the radar chart
@@ -65,45 +77,95 @@ const TasteRadarChart = () => {
     labels: labels,
     datasets: [
       {
-        label: 'Your Taste Preferences',
+        label: 'Your Taste DNA',
         data: dataValues,
-        backgroundColor: 'rgba(91, 107, 232, 0.2)',
-        borderColor: 'rgba(91, 107, 232, 1)',
-        borderWidth: 2,
-        pointBackgroundColor: 'rgba(255, 77, 126, 1)',
+        backgroundColor: 'rgba(102, 126, 234, 0.35)',
+        borderColor: 'rgba(102, 126, 234, 1)',
+        borderWidth: 3,
+        pointBackgroundColor: 'rgba(240, 147, 251, 1)',
         pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(255, 77, 126, 1)'
+        pointBorderWidth: 3,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+        pointHoverBackgroundColor: 'rgba(240, 147, 251, 1)',
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 4
       }
     ]
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: true,
     plugins: {
       legend: {
-        position: 'top',
+        display: false
       },
-      title: {
-        display: true,
-        text: 'Your Taste Profile'
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(10px)',
+        padding: 12,
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        displayColors: false,
+        callbacks: {
+          label: function(context) {
+            return `${context.label}: ${context.parsed.r.toFixed(1)}`;
+          }
+        }
       }
     },
     scales: {
       r: {
         angleLines: {
-          display: true
+          display: true,
+          color: 'rgba(255, 255, 255, 0.15)'
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.15)'
+        },
+        pointLabels: {
+          color: '#ffffff',
+          font: {
+            size: 14,
+            weight: '700'
+          }
+        },
+        ticks: {
+          display: false,
+          stepSize: 1
         },
         suggestedMin: 0,
-        suggestedMax: 5
+        suggestedMax: Math.max(...dataValues) * 1.2
       }
     }
   };
 
+  // Dark theme adjustments
+  if (document.documentElement.getAttribute('data-theme') === 'light') {
+    options.scales.r.angleLines.color = 'rgba(0, 0, 0, 0.15)';
+    options.scales.r.grid.color = 'rgba(0, 0, 0, 0.15)';
+    options.scales.r.pointLabels.color = '#1e293b';
+    data.datasets[0].backgroundColor = 'rgba(102, 126, 234, 0.25)';
+    data.datasets[0].borderColor = 'rgba(102, 126, 234, 0.9)';
+  }
+
   return (
-    <div className="taste-radar-chart">
-      <Radar data={data} options={options} />
-    </div>
+    <motion.div 
+      className="taste-radar-chart"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: 0.8 }}
+    >
+      <div className="radar-chart-header">
+        <h4 className="radar-title">🎯 Taste Radar</h4>
+      </div>
+      <div className="radar-chart-wrapper">
+        <Radar data={data} options={options} />
+      </div>
+    </motion.div>
   );
 };
 

@@ -1,99 +1,193 @@
 // src/pages/Landing.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Header from "../components/Header";
-import ChatPreview from "../components/ChatPreview";
 import "./landing-animated.css";
 
 const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } }
+  hidden: { opacity: 0 },
+  show: { 
+    opacity: 1,
+    transition: { 
+      staggerChildren: 0.15,
+      delayChildren: 0.2
+    } 
+  }
 };
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  hidden: { opacity: 0, y: 40 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      duration: 0.8,
+      ease: [0.6, 0.05, 0.01, 0.9]
+    } 
+  }
 };
 
-function AnimatedCTA({ onPrimary }) {
-  return (
-    <motion.div className="cta-group" variants={fadeUp}>
-      <button className="btn-primary big" onClick={onPrimary}>
-        Start Cooking — Voice Mode
-      </button>
-      <button className="btn-outline" onClick={() => (window.location.href = "/register")}>
-        Create account
-      </button>
-      <div className="cta-hint">Try: "Make a 20-minute paneer tikka with low oil"</div>
-    </motion.div>
-  );
-}
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  show: { 
+    opacity: 1, 
+    scale: 1, 
+    transition: { 
+      duration: 0.6,
+      ease: "easeOut"
+    } 
+  }
+};
+
+const FloatingElement = ({ delay = 0, children, className = "" }) => (
+  <motion.div
+    className={`floating-element ${className}`}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ 
+      opacity: [0, 1, 1],
+      y: [20, 0, -10, 0],
+    }}
+    transition={{
+      duration: 4,
+      delay,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    }}
+  >
+    {children}
+  </motion.div>
+);
 
 export default function Landing() {
-  // sample recipe preview data — you can replace this by passing props or fetching
-  const sample = {
-    title: "Paneer Tikka (20 min)",
-    summary: "Tender paneer pieces marinated in spices & grilled quickly for a smoky finish.",
-    ingredients: [
-      "250g paneer (cubed)",
-      "2 tbsp hung curd",
-      "1 tsp red chilli powder",
-      "1 tsp garam masala",
-      "1 tbsp oil",
-      "Salt to taste"
-    ],
-    steps: [
-      "Mix curd, spices, oil and salt. Marinate paneer for 10 minutes.",
-      "Preheat a skillet on medium-high. Add a little oil and sear paneer until charred edges form (2–3 min each side).",
-      "Serve hot with chutney and lemon wedges."
-    ]
-  };
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
     <div className="page landing animated-landing">
+      {/* Animated background gradients */}
+      <div className="gradient-bg">
+        <div className="gradient-orb orb-1"></div>
+        <div className="gradient-orb orb-2"></div>
+        <div className="gradient-orb orb-3"></div>
+      </div>
+
+      {/* Floating cursor follower */}
+      <motion.div 
+        className="cursor-glow"
+        animate={{
+          x: mousePosition.x - 200,
+          y: mousePosition.y - 200,
+        }}
+        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+      />
+
       <Header />
 
-      <main className="landing-main container">
-        <section className="landing-left">
-          <motion.div className="hero-card" initial="hidden" animate="show" variants={container}>
-            <div className="landing-left-content">
-              <motion.h1 className="hero-title" variants={fadeUp}>
-                Hands-free cooking with AI
-              </motion.h1>
+      <main className="landing-main">
+        <motion.div 
+          className="hero-section"
+          initial="hidden"
+          animate="show"
+          variants={container}
+        >
+          {/* Main content */}
+          <div className="hero-content">
+            <motion.div className="hero-badge" variants={scaleIn}>
+              <span className="badge-icon">✨</span>
+              <span>AI-Powered Cooking Assistant</span>
+            </motion.div>
 
-              <motion.p className="hero-sub" variants={fadeUp}>
-                Generate step-by-step voice-guided recipes, set auto-advancing timers and cook without touching your screen.
-              </motion.p>
+            <motion.h1 className="hero-title" variants={fadeUp}>
+              Cook Smarter with
+              <span className="gradient-text"> Voice AI</span>
+            </motion.h1>
 
-              <AnimatedCTA onPrimary={() => (window.location.href = "/login")} />
+            <motion.p className="hero-description" variants={fadeUp}>
+              Experience hands-free cooking with intelligent voice guidance,
+              personalized recipes, and smart timers that adapt to your taste.
+            </motion.p>
 
-              <motion.div className="trust-row" variants={fadeUp}>
-                <div><strong>Trusted by chefs</strong></div>
-                <div className="badges">
-                  <span>Early Access</span>
-                  <span>Offline mode</span>
-                  
-                </div>
-              </motion.div>
+            <motion.div className="cta-buttons" variants={fadeUp}>
+              <button 
+                className="btn-primary-glass"
+                onClick={() => (window.location.href = "/login")}
+              >
+                <span>Start Cooking</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <button 
+                className="btn-secondary-glass"
+                onClick={() => (window.location.href = "/register")}
+              >
+                Create Account
+              </button>
+            </motion.div>
 
-              <motion.div className="feature-grid" aria-hidden variants={fadeUp}>
-                <div className="feature">⏱ Auto timers</div>
-                <div className="feature">🎙 Voice prompts</div>
-                <div className="feature">📝 Save & revisit</div>
-              </motion.div>
-            </div>
+            <motion.div className="features-grid" variants={fadeUp}>
+              <div className="feature-card glass">
+                <div className="feature-icon">🎤</div>
+                <h3>Voice Control</h3>
+                <p>Hands-free cooking experience</p>
+              </div>
+              <div className="feature-card glass">
+                <div className="feature-icon">🍽️</div>
+                <h3>Taste Profile</h3>
+                <p>Personalized to your preferences</p>
+              </div>
+              <div className="feature-card glass">
+                <div className="feature-icon">⏱️</div>
+                <h3>Smart Timers</h3>
+                <p>Auto-advancing step timers</p>
+              </div>
+            </motion.div>
+          </div>
 
-            {/* Right column replaced by ChatPreview inside the hero-card grid */}
-            <div className="hero-right-col">
-              <ChatPreview recipe={sample} />
-            </div>
-          </motion.div>
-        </section>
+          {/* Floating recipe cards */}
+          <div className="floating-cards">
+            <FloatingElement delay={0} className="recipe-float recipe-1">
+              <div className="glass-card">
+                <div className="card-emoji">🍝</div>
+                <h4>Pasta Carbonara</h4>
+                <p>15 minutes</p>
+              </div>
+            </FloatingElement>
+
+            <FloatingElement delay={0.5} className="recipe-float recipe-2">
+              <div className="glass-card">
+                <div className="card-emoji">🍛</div>
+                <h4>Butter Chicken</h4>
+                <p>30 minutes</p>
+              </div>
+            </FloatingElement>
+
+            <FloatingElement delay={1} className="recipe-float recipe-3">
+              <div className="glass-card">
+                <div className="card-emoji">🥗</div>
+                <h4>Caesar Salad</h4>
+                <p>10 minutes</p>
+              </div>
+            </FloatingElement>
+
+            <FloatingElement delay={1.5} className="recipe-float recipe-4">
+              <div className="glass-card">
+                <div className="card-emoji">🍰</div>
+                <h4>Chocolate Cake</h4>
+                <p>45 minutes</p>
+              </div>
+            </FloatingElement>
+          </div>
+        </motion.div>
       </main>
-
-      <footer className="landing-footer">
-        <p>Made with ❤️ — Voice Cooking Assistant</p>
-      </footer>
     </div>
   );
 }

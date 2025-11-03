@@ -123,6 +123,13 @@ export default function ChatPage(){
 
   return (
     <div className="chat-page">
+      {/* Animated background gradients */}
+      <div className="chat-page-gradient-bg">
+        <div className="chat-orb chat-orb-1"></div>
+        <div className="chat-orb chat-orb-2"></div>
+        <div className="chat-orb chat-orb-3"></div>
+      </div>
+      
       <Header />
       <ChatWindow 
         history={history} 
