@@ -12,7 +12,17 @@ const recipeSchema = new mongoose.Schema({
   summary: String,
   ingredients: [String],
   steps: [stepSchema],
-  geminiRaw: { type: mongoose.Schema.Types.Mixed }
+  geminiRaw: { type: mongoose.Schema.Types.Mixed },
+  // Taste profile fields
+  tasteRating: {
+    sweet: { type: Number, default: 0 },
+    salty: { type: Number, default: 0 },
+    spicy: { type: Number, default: 0 },
+    sour: { type: Number, default: 0 },
+    bitter: { type: Number, default: 0 },
+    umami: { type: Number, default: 0 }
+  },
+  userTasteNotes: String // User's custom notes about the dish
 }, { timestamps: true });
 
 module.exports = mongoose.model('Recipe', recipeSchema);

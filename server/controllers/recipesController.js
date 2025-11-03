@@ -128,8 +128,42 @@ exports.generateAndSave = async (req, res) => {
       return res.status(400).json({ message: 'Prompt is required' });
     }
 
-    // Call Gemini via your geminiClient wrapper
-    const gen = await gemini.generateRecipe(prompt);
+    // Get user's taste profile to influence recipe generation
+    const userId = req.user.id;
+    const recipes = await Recipe.find({ user: userId, tasteRating: { $exists: true } });
+    
+    let tasteProfile = null;
+    if (recipes.length > 0) {
+      // Calculate average taste preferences
+      tasteProfile = {
+        sweet: 0,
+        salty: 0,
+        spicy: 0,
+        sour: 0,
+        bitter: 0,
+        umami: 0
+      };
+      
+      recipes.forEach(recipe => {
+        Object.keys(tasteProfile).forEach(taste => {
+          tasteProfile[taste] += recipe.tasteRating[taste] || 0;
+        });
+      });
+      
+      // Calculate averages
+      Object.keys(tasteProfile).forEach(taste => {
+        tasteProfile[taste] = Math.round(tasteProfile[taste] / recipes.length * 100) / 100;
+      });
+      
+      // Only include tastes with non-zero values
+      const hasPreferences = Object.values(tasteProfile).some(value => value > 0);
+      if (!hasPreferences) {
+        tasteProfile = null;
+      }
+    }
+
+    // Call Gemini via your geminiClient wrapper, passing taste profile
+    const gen = await gemini.generateRecipe(prompt, tasteProfile);
 
     // Extract and parse JSON recipe from response
     const parsed = extractJsonTextFromGemini(gen);
@@ -164,21 +198,14 @@ exports.generateAndSave = async (req, res) => {
       };
     }
 
-    // Persist to DB
-    const newRecipe = await Recipe.create({
-      user: req.user.id,
-      title: finalRecipe.title,
-      prompt: prompt,
-      summary: finalRecipe.summary || '',
-      ingredients: finalRecipe.ingredients || [],
-      steps: finalRecipe.steps || [],
-      geminiRaw: gen
-    });
+    // Attach user and save
+    finalRecipe.user = userId;
+    const saved = await Recipe.create(finalRecipe);
 
-    return res.status(201).json(newRecipe);
+    res.status(201).json(saved);
   } catch (err) {
-    console.error('Error in generateAndSave:', err);
-    return res.status(500).json({ message: 'Failed to generate recipe', error: err.message });
+    console.error('Recipe generation error:', err);
+    res.status(500).json({ message: 'Failed to generate recipe' });
   }
 };
 
@@ -232,5 +259,93 @@ exports.deleteRecipe = async (req, res) => {
   } catch (err) {
     console.error('deleteRecipe error:', err);
     return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add taste rating to a recipe
+exports.addTasteRating = async (req, res) => {
+  try {
+    const recipeId = req.params.id; // Changed from req.params.recipeId to req.params.id
+    const { tasteRating, userTasteNotes } = req.body;
+    
+    console.log('Adding taste rating for recipe:', recipeId);
+    console.log('Taste rating data:', tasteRating);
+    console.log('User notes:', userTasteNotes);
+    
+    // Validate taste rating object
+    const validTastes = ['sweet', 'salty', 'spicy', 'sour', 'bitter', 'umami'];
+    const updatedRating = {};
+    
+    validTastes.forEach(taste => {
+      updatedRating[taste] = tasteRating && typeof tasteRating[taste] === 'number' ? 
+        Math.max(0, tasteRating[taste]) : 0;
+    });
+    
+    console.log('Updated rating:', updatedRating);
+    
+    // Update the recipe with taste rating
+    const recipe = await Recipe.findByIdAndUpdate(
+      recipeId,
+      { 
+        $set: { 
+          tasteRating: updatedRating,
+          userTasteNotes: userTasteNotes || ''
+        }
+      },
+      { new: true, runValidators: true }
+    );
+    
+    if (!recipe) {
+      console.log('Recipe not found:', recipeId);
+      return res.status(404).json({ message: 'Recipe not found' });
+    }
+    
+    console.log('Recipe updated with taste rating:', recipe.tasteRating);
+    res.json(recipe);
+  } catch (err) {
+    console.error('Error adding taste rating:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get user's taste profile (aggregate from all recipes)
+exports.getUserTasteProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log('Fetching taste profile for user:', userId);
+    
+    // Aggregate taste ratings from all user's recipes
+    const recipes = await Recipe.find({ user: userId, tasteRating: { $exists: true } });
+    console.log('Found recipes with taste ratings:', recipes.length);
+    
+    // Calculate average taste preferences
+    const tasteProfile = {
+      sweet: 0,
+      salty: 0,
+      spicy: 0,
+      sour: 0,
+      bitter: 0,
+      umami: 0
+    };
+    
+    if (recipes.length > 0) {
+      recipes.forEach(recipe => {
+        console.log('Recipe taste rating:', recipe.tasteRating);
+        Object.keys(tasteProfile).forEach(taste => {
+          tasteProfile[taste] += recipe.tasteRating[taste] || 0;
+        });
+      });
+      
+      // Calculate averages
+      Object.keys(tasteProfile).forEach(taste => {
+        tasteProfile[taste] = Math.round(tasteProfile[taste] / recipes.length * 100) / 100;
+      });
+    }
+    
+    console.log('Final taste profile:', tasteProfile);
+    res.json(tasteProfile);
+  } catch (err) {
+    console.error('Error getting taste profile:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };

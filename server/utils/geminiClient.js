@@ -10,9 +10,24 @@ if (!GEMINI_KEY) {
 }
 
 module.exports = {
-  generateRecipe: async (prompt) => {
+  generateRecipe: async (prompt, tasteProfile = null) => {
     try {
       const url = `${GEMINI_BASE}/models/${MODEL_NAME}:generateContent?key=${GEMINI_KEY}`;
+
+      // Enhance prompt with taste profile if available
+      let enhancedPrompt = prompt;
+      if (tasteProfile) {
+        const tastePreferences = [];
+        Object.keys(tasteProfile).forEach(taste => {
+          if (tasteProfile[taste] > 0) {
+            tastePreferences.push(`${taste}: ${tasteProfile[taste]}`);
+          }
+        });
+        
+        if (tastePreferences.length > 0) {
+          enhancedPrompt = `Create a recipe for someone with these taste preferences: ${tastePreferences.join(', ')}. ${prompt}`;
+        }
+      }
 
       const body = {
         contents: [
@@ -29,7 +44,7 @@ module.exports = {
     {"instruction": "step text", "estimateSeconds": 120}
   ]
 }
-Given this user prompt: "${prompt}"
+${enhancedPrompt}
 Return only the JSON object with no extra commentary.`
               }
             ]

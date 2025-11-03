@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../components/ConfirmDialog';
 import RecipeCard from '../components/RecipeCard';
 import { AuthContext } from '../context/AuthContext';
+import TasteProfile from '../components/TasteProfile';
+import TasteRadarChart from '../components/TasteRadarChart';
 
 export default function Dashboard(){
   const [recipes, setRecipes] = useState([]);
@@ -62,10 +64,14 @@ export default function Dashboard(){
         </div>
 
         <div className="dashboard-right">
-          {/* placeholder for right panel or preview */}
           <div className="panel">
-            <h4>Tips</h4>
-            <p>Click a recipe to open chat or create a new recipe by starting a new chat.</p>
+            <h4>Your Taste Profile</h4>
+            <TasteProfile />
+            <TasteRadarChart />
+            <div className="panel-content">
+              <p>Your taste preferences help us generate recipes tailored to your liking.</p>
+              <p>Complete more recipes and rate them to improve your personalized experience.</p>
+            </div>
           </div>
         </div>
       </main>
@@ -74,4 +80,3 @@ export default function Dashboard(){
     </div>
   );
 }
-

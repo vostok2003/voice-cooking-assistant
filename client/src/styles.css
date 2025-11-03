@@ -460,3 +460,313 @@ body {
 [data-theme="dark"] .cook-complete {
   background: rgba(34, 197, 94, 0.15);
 }
+
+/* Taste Rating Form Styles */
+.taste-rating-form {
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(91, 107, 232, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(91, 107, 232, 0.2);
+}
+
+.taste-rating-form h3 {
+  margin-top: 0;
+  color: #5b6be8;
+  text-align: center;
+}
+
+.taste-rating-form p {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.taste-ratings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.taste-rating-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.taste-rating-item label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.rating-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star {
+  font-size: 24px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffcc00;
+}
+
+.star:hover {
+  color: #ffdd44;
+}
+
+.taste-notes {
+  margin-bottom: 24px;
+}
+
+.taste-notes label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.taste-notes textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.taste-notes textarea:focus {
+  outline: none;
+  border-color: #5b6be8;
+  box-shadow: 0 0 0 3px rgba(91, 107, 232, 0.2);
+}
+
+.rating-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-submit-rating {
+  padding: 12px 24px;
+  background: linear-gradient(90deg, #5b6be8, #ff4d7e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-submit-rating:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(91, 107, 232, 0.3);
+}
+
+.btn-skip-rating {
+  padding: 12px 24px;
+  background: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-skip-rating:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+[data-theme="dark"] .taste-rating-form {
+  background: rgba(91, 107, 232, 0.1);
+  border-color: rgba(91, 107, 232, 0.3);
+}
+
+[data-theme="dark"] .star {
+  color: #444;
+}
+
+[data-theme="dark"] .star.filled {
+  color: #ffcc00;
+}
+
+[data-theme="dark"] .taste-notes textarea {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #eee;
+}
+
+[data-theme="dark"] .taste-notes textarea:focus {
+  border-color: #5b6be8;
+  box-shadow: 0 0 0 3px rgba(91, 107, 232, 0.3);
+}
+
+[data-theme="dark"] .btn-skip-rating {
+  background: transparent;
+  color: #aaa;
+  border-color: #444;
+}
+
+[data-theme="dark"] .btn-skip-rating:hover {
+  background: #2a2a2a;
+  border-color: #555;
+}
+
+/* Taste Profile Styles */
+.taste-profile-container {
+  margin: 24px 0;
+  padding: 20px;
+  background: rgba(91, 107, 232, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(91, 107, 232, 0.2);
+}
+
+.taste-profile-container h3 {
+  margin-top: 0;
+  color: #5b6be8;
+  text-align: center;
+}
+
+.taste-profile-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.taste-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.taste-label {
+  width: 80px;
+  font-weight: 500;
+  text-align: right;
+  color: var(--text);
+}
+
+.taste-bar-container {
+  flex: 1;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.taste-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5b6be8, #ff4d7e);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.taste-value {
+  width: 40px;
+  font-weight: 500;
+  text-align: right;
+  color: var(--text);
+}
+
+.taste-profile-loading,
+.taste-profile-error,
+.taste-profile-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+}
+
+[data-theme="dark"] .taste-profile-container {
+  background: rgba(91, 107, 232, 0.1);
+  border-color: rgba(91, 107, 232, 0.3);
+}
+
+[data-theme="dark"] .taste-bar-container {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Taste Radar Chart Styles */
+.taste-radar-chart {
+  margin: 24px 0;
+  padding: 20px;
+  background: rgba(91, 107, 232, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(91, 107, 232, 0.2);
+}
+
+.taste-chart-loading,
+.taste-chart-error,
+.taste-chart-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+}
+
+[data-theme="dark"] .taste-radar-chart {
+  background: rgba(91, 107, 232, 0.1);
+  border-color: rgba(91, 107, 232, 0.3);
+}
+
+/* Taste Profile Info Styles */
+.taste-profile-info {
+  margin: 16px 0;
+  padding: 16px;
+  background: rgba(91, 107, 232, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #5b6be8;
+}
+
+.taste-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.taste-profile-icon {
+  font-size: 18px;
+}
+
+.taste-profile-title {
+  font-weight: 600;
+  color: #5b6be8;
+}
+
+.taste-profile-content p {
+  margin: 8px 0;
+  color: var(--text);
+}
+
+.taste-profile-content ul {
+  margin: 8px 0 8px 20px;
+  padding: 0;
+}
+
+.taste-profile-content li {
+  margin: 4px 0;
+  color: var(--text);
+}
+
+.taste-profile-note {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+[data-theme="dark"] .taste-profile-info {
+  background: rgba(91, 107, 232, 0.1);
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CookMode from './CookMode';
+import TasteProfileInfo from './TasteProfileInfo';
 
 export default function ChatWindow({ history = [], onSend, isSpeaking = false, onStopSpeaking, recipe }) {
   const [text, setText] = useState('');
@@ -126,6 +127,8 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
             <div className="msg-body">{m.text}</div>
           </div>
         ))}
+        {/* Show taste profile info after the first recipe is generated */}
+        {recipe && <TasteProfileInfo />}
       </div>
 
       <form className="chat-input" onSubmit={submit}>

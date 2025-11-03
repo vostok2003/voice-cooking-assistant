@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import api from '../utils/api';
 
 export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
   const [isCooking, setIsCooking] = useState(false);
@@ -9,6 +10,16 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
   const [cookingStatus, setCookingStatus] = useState(''); // 'speaking', 'waiting', 'timer', 'complete'
   const [recognitionPermissionGranted, setRecognitionPermissionGranted] = useState(false);
   const [recognitionError, setRecognitionError] = useState(null);
+  const [showRating, setShowRating] = useState(false);
+  const [tasteRating, setTasteRating] = useState({
+    sweet: 0,
+    salty: 0,
+    spicy: 0,
+    sour: 0,
+    bitter: 0,
+    umami: 0
+  });
+  const [userTasteNotes, setUserTasteNotes] = useState('');
   
   const timerIntervalRef = useRef(null);
   const startRecognitionRef = useRef(null);
@@ -276,6 +287,8 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
       setCookingStatus('complete');
       setIsWaitingForStart(false);
       setIsTimerRunning(false);
+      // Show rating form immediately when recipe is complete
+      setShowRating(true);
     }
   }, [recipe]);
 
@@ -352,10 +365,20 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     }
 
     let recognitionAttempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = 3; // Reduced from 5 to 3
     let isRestarting = false;
+    let lastRestartTime = 0;
+    const MIN_RESTART_INTERVAL = 2000; // Minimum 2 seconds between restarts
 
     const startRecognition = () => {
+      // Check if we're restarting too quickly
+      const now = Date.now();
+      if (now - lastRestartTime < MIN_RESTART_INTERVAL) {
+        console.log('⚠️ Preventing rapid restart - waiting...');
+        return;
+      }
+      lastRestartTime = now;
+
       if (!isWaitingRef.current || !isCookingRef.current || isRestarting) {
         return;
       }
@@ -428,18 +451,20 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
           // For other errors, try to restart (continuous mode should handle it, but just in case)
           if (isWaitingRef.current && isCookingRef.current && recognitionAttempts < maxAttempts) {
             recognitionAttempts++;
+            console.log(`Attempting restart ${recognitionAttempts}/${maxAttempts}`);
             isRestarting = true;
             setTimeout(() => {
-              if (isWaitingRef.current && isCookingRef.current && !isRestarting) {
-                isRestarting = false;
+              isRestarting = false;
+              if (isWaitingRef.current && isCookingRef.current) {
                 // Only restart if recognition actually stopped
-                if (!startRecognitionRef.current || 
-                    startRecognitionRef.current.readyState === SpeechRecognition.STOPPED ||
-                    startRecognitionRef.current.readyState === SpeechRecognition.INACTIVE) {
+                if (!startRecognitionRef.current) {
                   startRecognition();
                 }
               }
-            }, 1000);
+            }, 2000); // Increased to 2 seconds
+          } else if (recognitionAttempts >= maxAttempts) {
+            console.log('Max recognition restart attempts reached. Please use manual start button.');
+            setRecognitionError('Voice recognition unavailable. Please use the "Start Timer" button.');
           }
         };
 
@@ -448,18 +473,20 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
           // With continuous=true, onend should only fire on error or manual stop
           // Only restart if we're still waiting and haven't exceeded attempts
           if (isWaitingRef.current && isCookingRef.current && !isRestarting && recognitionAttempts < maxAttempts) {
+            recognitionAttempts++;
             // Wait before restarting to prevent rapid loops
             setTimeout(() => {
               if (isWaitingRef.current && isCookingRef.current && !isRestarting) {
                 // Check if recognition is not already active
                 if (!startRecognitionRef.current || 
                     (startRecognitionRef.current && 
-                     (startRecognitionRef.current.readyState === SpeechRecognition.STOPPED ||
-                      startRecognitionRef.current.readyState === SpeechRecognition.INACTIVE))) {
+                     (startRecognitionRef.current.readyState === undefined ||
+                      startRecognitionRef.current.readyState === 2 ||
+                      startRecognitionRef.current.readyState === 0))) {
                   startRecognition();
                 }
               }
-            }, 1000);
+            }, 1500); // Increased delay to 1.5 seconds to prevent rapid restarts
           }
         };
 
@@ -691,6 +718,10 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
 
   const handleStopCooking = () => {
     cleanup();
+    // Show rating form when cooking is complete
+    if (cookingStatus === 'complete') {
+      setShowRating(true);
+    }
     setIsCooking(false);
     setCurrentStepIndex(0);
     setTimerSeconds(0);
@@ -756,6 +787,8 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
       setCookingStatus('complete');
       setIsWaitingForStart(false);
       setIsTimerRunning(false);
+      // Show rating form immediately when recipe is complete
+      setShowRating(true);
     }
   };
 
@@ -767,6 +800,35 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     setIsWaitingForStart(false);
     setCookingStatus('');
     speakCurrentInstruction();
+  };
+
+  const handleSubmitRating = async () => {
+    try {
+      console.log('Submitting taste rating for recipe:', recipe._id);
+      console.log('Taste rating data:', tasteRating);
+      console.log('User notes:', userTasteNotes);
+      
+      const response = await api.post(`/recipes/${recipe._id}/taste-rating`, {
+        tasteRating,
+        userTasteNotes
+      });
+      
+      console.log('Taste rating saved successfully:', response.data);
+      setShowRating(false);
+      // Reset rating form
+      setTasteRating({
+        sweet: 0,
+        salty: 0,
+        spicy: 0,
+        sour: 0,
+        bitter: 0,
+        umami: 0
+      });
+      setUserTasteNotes('');
+    } catch (err) {
+      console.error('Error saving taste rating:', err);
+      alert('Failed to save taste rating. Please try again.');
+    }
   };
 
   if (!recipe?.steps || recipe.steps.length === 0) {
@@ -936,6 +998,53 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
           {cookingStatus === 'complete' && (
             <div className="cook-complete">
               🎉 Recipe Complete!
+            </div>
+          )}
+          
+          {showRating && (
+            <div className="taste-rating-form">
+              <h3>Rate This Recipe</h3>
+              <p>Help us understand your taste preferences!</p>
+              
+              <div className="taste-ratings">
+                {Object.keys(tasteRating).map((taste) => (
+                  <div key={taste} className="taste-rating-item">
+                    <label>{taste.charAt(0).toUpperCase() + taste.slice(1)}:</label>
+                    <div className="rating-stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          className={`star ${star <= tasteRating[taste] ? 'filled' : ''}`}
+                          onClick={() => setTasteRating({
+                            ...tasteRating,
+                            [taste]: star
+                          })}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="taste-notes">
+                <label>Additional Notes:</label>
+                <textarea
+                  value={userTasteNotes}
+                  onChange={(e) => setUserTasteNotes(e.target.value)}
+                  placeholder="Anything else you'd like to share about this recipe?"
+                />
+              </div>
+              
+              <div className="rating-actions">
+                <button onClick={handleSubmitRating} className="btn-submit-rating">
+                  Submit Rating
+                </button>
+                <button onClick={() => setShowRating(false)} className="btn-skip-rating">
+                  Skip
+                </button>
+              </div>
             </div>
           )}
         </div>
