@@ -9,7 +9,7 @@ exports.register = async (req, res) => {
   const hashed = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, password: hashed });
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user._id, email: user.email, name: user.name, language: user.language } });
+  res.json({ token, user: { id: user._id, email: user.email, name: user.name, language: user.language, speechSpeed: user.speechSpeed } });
 };
 
 exports.login = async (req, res) => {
@@ -19,7 +19,7 @@ exports.login = async (req, res) => {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(400).json({ message: 'Invalid credentials' });
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user._id, email: user.email, name: user.name, language: user.language } });
+  res.json({ token, user: { id: user._id, email: user.email, name: user.name, language: user.language, speechSpeed: user.speechSpeed } });
 };
 
 exports.updateLanguage = async (req, res) => {
@@ -30,8 +30,26 @@ exports.updateLanguage = async (req, res) => {
       { language },
       { new: true }
     );
-    res.json({ user: { id: user._id, email: user.email, name: user.name, language: user.language } });
+    res.json({ user: { id: user._id, email: user.email, name: user.name, language: user.language, speechSpeed: user.speechSpeed } });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update language' });
+  }
+};
+
+exports.updateSpeechSpeed = async (req, res) => {
+  try {
+    const { speechSpeed } = req.body;
+    // Validate speed is within allowed range
+    if (speechSpeed < 0.25 || speechSpeed > 2.25) {
+      return res.status(400).json({ message: 'Speech speed must be between 0.25x and 2.25x' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { speechSpeed },
+      { new: true }
+    );
+    res.json({ user: { id: user._id, email: user.email, name: user.name, language: user.language, speechSpeed: user.speechSpeed } });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update speech speed' });
   }
 };

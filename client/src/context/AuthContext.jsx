@@ -43,8 +43,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateSpeechSpeed = async (speechSpeed) => {
+    try {
+      const response = await api.put('/auth/speech-speed', { speechSpeed });
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      console.error('Failed to update speech speed:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, updateLanguage, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, updateLanguage, updateSpeechSpeed, loading }}>
       {children}
     </AuthContext.Provider>
   );

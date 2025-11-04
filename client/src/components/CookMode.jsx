@@ -3,7 +3,7 @@ import api from '../utils/api';
 import { getStartCommand, getSayPrompt, getStepText, getTimeText } from '../utils/languages';
 import { speak as enhancedSpeak, cancelSpeech } from '../utils/speechSynthesis';
 
-export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = 'en-IN' }) {
+export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = 'en-IN', speechSpeed = 1.0 }) {
   const [isCooking, setIsCooking] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -65,11 +65,11 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = '
     }
     
     console.log('🔊 Queuing speech:', text.substring(0, 50) + '...');
-    console.log(`Using language: ${language}`);
+    console.log(`Using language: ${language}, speed: ${speechSpeed}x`);
     
     // Use enhanced speech synthesis with ResponsiveVoice support
     enhancedSpeak(text, language, {
-      rate: 0.9,
+      rate: speechSpeed,
       pitch: 1,
       volume: 1,
       onStart: () => {
@@ -502,7 +502,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = '
       setCookingStatus('speaking');
       
       enhancedSpeak(instructionText, language, {
-        rate: 0.9,
+        rate: speechSpeed,
         pitch: 1.0,
         volume: 1.0,
         onStart: () => {
@@ -780,7 +780,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = '
                 
                 // Speak immediately
                 enhancedSpeak('Testing speech synthesis. Can you hear this?', language, {
-                  rate: 0.9,
+                  rate: speechSpeed,
                   pitch: 1.0,
                   volume: 1.0,
                   onStart: () => console.log('✅ Test speech started'),

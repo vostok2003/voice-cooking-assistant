@@ -6,15 +6,18 @@ import { AuthContext } from '../context/AuthContext';
 import { LANGUAGES, getLanguageFlag, getLanguageSupportNote } from '../utils/languages';
 
 export default function ChatWindow({ history = [], onSend, isSpeaking = false, onStopSpeaking, recipe }) {
-  const { user, updateLanguage } = useContext(AuthContext);
+  const { user, updateLanguage, updateSpeechSpeed } = useContext(AuthContext);
   const [text, setText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'en-IN');
+  const [speechSpeed, setSpeechSpeed] = useState(user?.speechSpeed || 1.0);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
   const recognitionRef = useRef(null);
   const interimTextRef = useRef('');
   const languageDropdownRef = useRef(null);
+  const speedDropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,21 +25,27 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
         setShowLanguageDropdown(false);
       }
+      if (speedDropdownRef.current && !speedDropdownRef.current.contains(event.target)) {
+        setShowSpeedDropdown(false);
+      }
     };
 
-    if (showLanguageDropdown) {
+    if (showLanguageDropdown || showSpeedDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showLanguageDropdown]);
+  }, [showLanguageDropdown, showSpeedDropdown]);
 
   useEffect(() => {
-    // Sync selected language with user preference
+    // Sync selected language and speed with user preference
     if (user?.language) {
       setSelectedLanguage(user.language);
+    }
+    if (user?.speechSpeed !== undefined) {
+      setSpeechSpeed(user.speechSpeed);
     }
   }, [user]);
 
@@ -187,6 +196,18 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
     }
   };
 
+  const handleSpeedChange = async (speed) => {
+    setSpeechSpeed(speed);
+    setShowSpeedDropdown(false);
+    
+    // Update in backend
+    try {
+      await updateSpeechSpeed(speed);
+    } catch (error) {
+      console.error('Failed to save speech speed preference:', error);
+    }
+  };
+
   return (
     <div className="chat-window-container">
       <div className="chat-window glass-card">
@@ -281,6 +302,48 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
               )}
             </div>
 
+            {/* Speech Speed Selector */}
+            <div className="speed-selector" ref={speedDropdownRef}>
+              <button
+                type="button"
+                className="speed-button"
+                onClick={() => setShowSpeedDropdown(!showSpeedDropdown)}
+                title="Speech speed"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+                <span className="speed-label">{speechSpeed}x</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 10l5 5 5-5z"/>
+                </svg>
+              </button>
+              
+              {showSpeedDropdown && (
+                <div className="speed-dropdown">
+                  <div className="speed-dropdown-header">Speech Speed</div>
+                  {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25].map((speed) => (
+                    <button
+                      key={speed}
+                      type="button"
+                      className={`speed-option ${speechSpeed === speed ? 'active' : ''}`}
+                      onClick={() => handleSpeedChange(speed)}
+                    >
+                      <span className="speed-value">{speed}x</span>
+                      <span className="speed-description">
+                        {speed < 0.75 ? 'Very Slow' : speed < 1 ? 'Slow' : speed === 1 ? 'Normal' : speed <= 1.5 ? 'Fast' : 'Very Fast'}
+                      </span>
+                      {speechSpeed === speed && (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <input 
               value={text} 
               onChange={e=>setText(e.target.value)} 
@@ -345,6 +408,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
         onSpeak={() => {}} 
         onStopSpeaking={onStopSpeaking}
         language={selectedLanguage}
+        speechSpeed={speechSpeed}
       />
     </div>
   );

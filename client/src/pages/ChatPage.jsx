@@ -14,11 +14,15 @@ export default function ChatPage(){
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'en-IN');
+  const [speechSpeed, setSpeechSpeed] = useState(user?.speechSpeed || 1.0);
 
   useEffect(() => {
-    // Sync selected language with user preference
+    // Sync selected language and speech speed with user preference
     if (user?.language) {
       setSelectedLanguage(user.language);
+    }
+    if (user?.speechSpeed !== undefined) {
+      setSpeechSpeed(user.speechSpeed);
     }
   }, [user]);
 
@@ -46,12 +50,12 @@ export default function ChatPage(){
     
     // Use enhanced speech synthesis with ResponsiveVoice support
     enhancedSpeak(text, selectedLanguage, {
-      rate: 0.9,
+      rate: speechSpeed,
       pitch: 1,
       volume: 1,
       onStart: () => {
         setIsSpeaking(true);
-        console.log(`🔊 Speaking in ${selectedLanguage}`);
+        console.log(`🔊 Speaking in ${selectedLanguage} at ${speechSpeed}x speed`);
       },
       onEnd: () => {
         setIsSpeaking(false);

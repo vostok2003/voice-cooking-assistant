@@ -942,6 +942,160 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Speech Speed Selector */
+.speed-selector {
+  position: relative;
+}
+
+.speed-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  min-width: 100px;
+}
+
+.speed-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.speed-label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+[data-theme="light"] .speed-button {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+[data-theme="light"] .speed-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.speed-dropdown {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 220px;
+  max-height: 350px;
+  overflow-y: auto;
+  background: rgba(30, 30, 40, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: slideUp 0.3s ease;
+}
+
+[data-theme="light"] .speed-dropdown {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.speed-dropdown-header {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+[data-theme="light"] .speed-dropdown-header {
+  color: rgba(30, 41, 59, 0.6);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.speed-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+
+.speed-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.speed-option.active {
+  background: rgba(102, 126, 234, 0.2);
+  border-left: 3px solid #667eea;
+}
+
+[data-theme="light"] .speed-option {
+  color: #1e293b;
+}
+
+[data-theme="light"] .speed-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .speed-option.active {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.speed-value {
+  font-weight: 700;
+  font-size: 16px;
+  color: #667eea;
+  min-width: 50px;
+}
+
+.speed-description {
+  flex: 1;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .speed-description {
+  color: rgba(30, 41, 59, 0.7);
+}
+
+.speed-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.speed-dropdown::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.speed-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.speed-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .chat-input {
   flex: 1;
   padding: 14px 20px;
