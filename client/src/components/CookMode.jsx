@@ -659,17 +659,60 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = '
             </button>
           </div>
 
-          {/* Ingredients List - Shows scaled quantities */}
+          {/* Ingredients List - Shows scaled quantities with smart grouping */}
           {recipe.ingredients && recipe.ingredients.length > 0 && (
             <div className="cook-ingredients-section">
               <h4>📋 Ingredients {recipe.currentServings && `(${recipe.currentServings} servings)`}</h4>
-              <ul className="cook-ingredients-list">
-                {recipe.ingredients.map((ingredient, idx) => (
-                  <li key={idx} className="cook-ingredient-item">
-                    {ingredient}
-                  </li>
-                ))}
-              </ul>
+              
+              {recipe.ingredientGroups ? (
+                // Display grouped ingredients with category headers
+                <div className="ingredients-grouped">
+                  {Object.entries(recipe.ingredientGroups).map(([category, items]) => {
+                    if (!items || items.length === 0) return null;
+                    
+                    const categoryConfig = {
+                      dairy: { icon: '🥛', label: 'Dairy', color: '#fbbf24' },
+                      vegetables: { icon: '🥕', label: 'Vegetables', color: '#34d399' },
+                      spices: { icon: '🌶️', label: 'Spices & Seasonings', color: '#f87171' },
+                      proteins: { icon: '🍗', label: 'Proteins', color: '#fb923c' },
+                      grains: { icon: '🌾', label: 'Grains & Carbs', color: '#fcd34d' },
+                      condiments: { icon: '🧈', label: 'Condiments & Oils', color: '#a78bfa' },
+                      herbs: { icon: '🌿', label: 'Fresh Herbs', color: '#4ade80' },
+                      other: { icon: '🥗', label: 'Other Ingredients', color: '#94a3b8' }
+                    };
+                    
+                    const config = categoryConfig[category] || categoryConfig.other;
+                    
+                    return (
+                      <div key={category} className="ingredient-category">
+                        <div className="category-header" style={{ borderLeftColor: config.color }}>
+                          <span className="category-icon">{config.icon}</span>
+                          <span className="category-label">{config.label}</span>
+                          <span className="category-count">({items.length})</span>
+                        </div>
+                        <ul className="category-items">
+                          {items.map((ingredient, idx) => (
+                            <li key={idx} className="cook-ingredient-item">
+                              <span className="ingredient-bullet" style={{ backgroundColor: config.color }}></span>
+                              {ingredient}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Fallback: Display ungrouped ingredients
+                <ul className="cook-ingredients-list">
+                  {recipe.ingredients.map((ingredient, idx) => (
+                    <li key={idx} className="cook-ingredient-item">
+                      {ingredient}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              
               {recipe.scaleFactor && recipe.scaleFactor !== 1 && (
                 <div className="cook-scale-info">
                   ℹ️ Ingredients scaled by {recipe.scaleFactor}x from original recipe

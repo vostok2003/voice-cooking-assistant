@@ -11,6 +11,10 @@ const recipeSchema = new mongoose.Schema({
   prompt: String,
   summary: String,
   ingredients: [String],
+  ingredientGroups: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  }, // Categorized ingredients: { dairy: [...], vegetables: [...], etc }
   steps: [stepSchema],
   originalServings: { type: Number, default: 2 }, // Original servings from Gemini
   geminiRaw: { type: mongoose.Schema.Types.Mixed },

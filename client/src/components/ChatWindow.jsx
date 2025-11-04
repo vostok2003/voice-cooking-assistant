@@ -60,12 +60,9 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
   // Scale recipe when servings change
   useEffect(() => {
     if (recipe) {
-      console.log('📊 Recipe detected:', recipe);
-      console.log('📊 Original servings:', recipe.originalServings);
       const scaled = scaleRecipe(recipe, servings);
       setScaledRecipe(scaled);
     } else {
-      console.log('📊 No recipe available');
       setScaledRecipe(null);
     }
   }, [recipe, servings]);
@@ -237,7 +234,6 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
   };
 
   const handleServingsChange = (newServings) => {
-    console.log('🍽️ Servings change clicked:', newServings);
     setServings(newServings);
     setShowServingsDropdown(false);
     
@@ -390,10 +386,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
                 <button
                   type="button"
                   className="servings-button"
-                  onClick={() => {
-                    console.log('🍽️ Servings button clicked, current state:', showServingsDropdown);
-                    setShowServingsDropdown(!showServingsDropdown);
-                  }}
+                  onClick={() => setShowServingsDropdown(!showServingsDropdown)}
                   title="Adjust servings"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -414,10 +407,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
                         key={count}
                         type="button"
                         className={`servings-option ${servings === count ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🍽️ Servings option clicked:', count);
-                          handleServingsChange(count);
-                        }}
+                        onClick={() => handleServingsChange(count)}
                       >
                         <span className="servings-count">{count}</span>
                         <span className="servings-description">

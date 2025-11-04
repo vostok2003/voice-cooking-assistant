@@ -177,6 +177,18 @@ exports.generateAndSave = async (req, res) => {
     if (parsed && (parsed.title || parsed.ingredients || parsed.steps)) {
       // Looks like a full recipe object
       finalRecipe = normalizeRecipe(parsed, prompt, title);
+      
+      // Classify ingredients into categories using Gemini
+      if (finalRecipe.ingredients && finalRecipe.ingredients.length > 0) {
+        try {
+          console.log('🧑‍🍳 Classifying ingredients...');
+          const groupedIngredients = await gemini.classifyIngredients(finalRecipe.ingredients);
+          finalRecipe.ingredientGroups = groupedIngredients;
+          console.log('✅ Ingredients classified:', groupedIngredients);
+        } catch (err) {
+          console.error('⚠️ Failed to classify ingredients, skipping grouping:', err.message);
+        }
+      }
     } else if (typeof gen === 'string') {
       finalRecipe = {
         prompt,

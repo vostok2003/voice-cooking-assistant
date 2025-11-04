@@ -17,12 +17,22 @@ export const scaleRecipe = (recipe, newServings) => {
   // Scale ingredients
   const scaledIngredients = scaleIngredients(recipe.ingredients || [], scaleFactor);
 
+  // Scale ingredient groups if they exist
+  let scaledGroups = null;
+  if (recipe.ingredientGroups) {
+    scaledGroups = {};
+    Object.keys(recipe.ingredientGroups).forEach(category => {
+      scaledGroups[category] = scaleIngredients(recipe.ingredientGroups[category], scaleFactor);
+    });
+  }
+
   // Scale cooking times (increase by 10% for every doubling of servings)
   const scaledSteps = scaleSteps(recipe.steps || [], scaleFactor);
 
   return {
     ...recipe,
     ingredients: scaledIngredients,
+    ingredientGroups: scaledGroups,
     steps: scaledSteps,
     currentServings: newServings,
     scaleFactor
