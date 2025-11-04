@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../utils/api';
+import { getStartCommand, getSayPrompt, getStepText, getTimeText } from '../utils/languages';
+import { speak as enhancedSpeak, cancelSpeech } from '../utils/speechSynthesis';
 
-export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
+export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = 'en-IN' }) {
   const [isCooking, setIsCooking] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -23,7 +25,6 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
   
   const timerIntervalRef = useRef(null);
   const startRecognitionRef = useRef(null);
-  const synthRef = useRef(null);
   const isWaitingRef = useRef(false);
   const isCookingRef = useRef(false);
   const currentStepIndexRef = useRef(0);
@@ -36,24 +37,6 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
   }, [isWaitingForStart, isCooking, currentStepIndex]);
 
   useEffect(() => {
-    synthRef.current = window.speechSynthesis;
-    
-    // Load voices - they might not be available immediately
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      console.log(`Loaded ${voices.length} voices`);
-      if (voices.length === 0) {
-        // Voices might load asynchronously, try again
-        setTimeout(loadVoices, 100);
-      }
-    };
-    
-    // Load voices when they become available
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-    loadVoices();
-    
     return () => {
       cleanup();
     };
@@ -70,199 +53,38 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
       } catch (e) {}
       startRecognitionRef.current = null;
     }
-    if (synthRef.current) {
-      synthRef.current.cancel();
-    }
+    // Use enhanced speech cancellation
+    cancelSpeech();
   };
 
   const speakText = (text, onComplete) => {
-    if (!synthRef.current || !text) {
-      console.log('Cannot speak: synthRef or text missing');
+    if (!text) {
+      console.log('Cannot speak: text missing');
       if (onComplete) onComplete();
       return;
     }
     
     console.log('🔊 Queuing speech:', text.substring(0, 50) + '...');
+    console.log(`Using language: ${language}`);
     
-    // Ensure we have access to speech synthesis
-    if (!window.speechSynthesis) {
-      console.error('❌ Speech synthesis API not available');
-      if (onComplete) onComplete();
-      return;
-    }
-    
-    // If speech is already active, queue the new speech (don't cancel)
-    // SpeechSynthesis automatically queues utterances
-    if (synthRef.current.speaking || synthRef.current.pending) {
-      console.log('⏳ Speech in progress - will queue this new speech');
-      // Just queue it - the API handles queuing automatically
-      // But we need to ensure the callback still fires
-      continueSpeaking();
-      return;
-    }
-    
-    continueSpeaking();
-    
-    function continueSpeaking() {
-      // Create utterance
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      let hasStarted = false;
-      let hasEnded = false;
-      let startTimeout = null;
-      
-      utterance.onstart = () => {
-        hasStarted = true;
-        if (startTimeout) {
-          clearTimeout(startTimeout);
-          startTimeout = null;
-        }
+    // Use enhanced speech synthesis with ResponsiveVoice support
+    enhancedSpeak(text, language, {
+      rate: 0.9,
+      pitch: 1,
+      volume: 1,
+      onStart: () => {
         console.log('✅ Speech STARTED - you should hear it now! 🔊');
-        
-        // Force audio context activation if needed
-        // Some browsers require this for audio playback
-        if (window.AudioContext || window.webkitAudioContext) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          const audioContext = new AudioContext();
-          if (audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-              console.log('Audio context resumed');
-            });
-          }
-        }
-        
-        // Double-check speech is actually speaking
-        setTimeout(() => {
-          const isActuallySpeaking = synthRef.current?.speaking || false;
-          console.log('Speech verification:', {
-            hasStarted,
-            isActuallySpeaking,
-            pending: synthRef.current?.pending,
-            paused: synthRef.current?.paused,
-            volume: utterance.volume,
-            rate: utterance.rate
-          });
-          
-          if (!isActuallySpeaking && !synthRef.current?.paused) {
-            console.warn('⚠️ WARNING: Speech reported started but not actually speaking!');
-            console.warn('This might be a browser issue. Please check:');
-            console.warn('1. System volume is not muted');
-            console.warn('2. Browser tab volume is not muted');
-            console.warn('3. Browser allows autoplay');
-          }
-        }, 200);
-      };
-      
-      if (onComplete) {
-        utterance.onend = () => {
-          hasEnded = true;
-          console.log('✅ Speech completed successfully');
-          if (startTimeout) clearTimeout(startTimeout);
-          onComplete();
-        };
-        utterance.onerror = (event) => {
-          console.log('Speech error:', event.error);
-          // For interrupted errors, don't treat as failure if it already started
-          if (event.error === 'interrupted' && hasStarted) {
-            console.log('⚠️ Speech was interrupted after starting (may have been heard)');
-          } else if (event.error === 'interrupted' && !hasStarted) {
-            console.log('⚠️ Speech was interrupted before starting - will retry');
-            // Retry once if interrupted before starting
-            setTimeout(() => {
-              if (!hasStarted) {
-                try {
-                  synthRef.current.speak(utterance);
-                } catch (e) {
-                  console.error('Retry failed:', e);
-                  if (onComplete) onComplete();
-                }
-              }
-            }, 300);
-            return; // Don't call onComplete yet, wait for retry
-          } else if (event.error) {
-            console.error('❌ Speech error:', event.error);
-          }
-          
-          if (!hasEnded && onComplete) {
-            setTimeout(() => {
-              if (onComplete) onComplete();
-            }, 100);
-          }
-          if (startTimeout) clearTimeout(startTimeout);
-        };
-      }
-      
-      // CRITICAL FIX: Call speak() synchronously in the same execution context
-      // Browsers block audio if there's ANY async operation (setTimeout, Promise, etc.)
-      try {
-        console.log('🔊 Calling speak() SYNCHRONOUSLY...');
-        console.log('Text length:', text.length, 'Preview:', text.substring(0, 50));
-        
-        // Check if browser supports speech synthesis
-        if (!window.speechSynthesis) {
-          console.error('❌ Speech synthesis not supported');
-          if (onComplete) onComplete();
-          return;
-        }
-        
-        // Get voices - must be done synchronously
-        let voices = window.speechSynthesis.getVoices();
-        
-        // If no voices, try loading them (but don't wait)
-        if (voices.length === 0) {
-          // Trigger voice loading
-          window.speechSynthesis.getVoices();
-          // Try again immediately
-          voices = window.speechSynthesis.getVoices();
-        }
-        
-        if (voices.length > 0) {
-          const englishVoice = voices.find(v => 
-            v.lang.startsWith('en-US') || v.lang.startsWith('en-GB') || v.lang.startsWith('en')
-          ) || voices[0];
-          
-          utterance.voice = englishVoice;
-          console.log(`Using voice: ${englishVoice.name} (${englishVoice.lang})`);
-        } else {
-          console.warn('⚠️ No voices available - will use default');
-        }
-        
-        // Set all properties synchronously
-        utterance.volume = 1.0;
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.lang = 'en-US';
-        
-        // Cancel only if something is ACTUALLY speaking (not pending)
-        if (synthRef.current.speaking) {
-          console.log('Canceling existing speech...');
-          synthRef.current.cancel();
-        }
-        
-        // CRITICAL: Call speak() SYNCHRONOUSLY - no delays, no async operations
-        console.log('🔊 CALLING speak() NOW - SYNCHRONOUS...');
-        const speakResult = synthRef.current.speak(utterance);
-        console.log('speak() returned:', speakResult);
-        
-        // Immediate status check
-        console.log('Immediate status:', {
-          speaking: synthRef.current.speaking,
-          pending: synthRef.current.pending,
-          paused: synthRef.current.paused
-        });
-        
         if (onSpeak) onSpeak();
-      } catch (err) {
-        console.error('❌ CRITICAL ERROR calling speak():', err);
-        console.error('Error details:', err.message, err.stack);
-        if (startTimeout) clearTimeout(startTimeout);
+      },
+      onEnd: () => {
+        console.log('✅ Speech completed successfully');
         if (onComplete) onComplete();
-      }
-    }
+      },
+      onError: (error) => {
+        console.error('❌ Speech error:', error);
+        if (onComplete) onComplete();
+      },
+    });
   };
 
   const formatTime = (seconds) => {
@@ -396,11 +218,12 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
         const recognition = new SpeechRecognition();
         recognition.continuous = true; // Keep listening continuously
         recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        recognition.lang = language;
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-          console.log('✅ Listening for "start" command...');
+          const startCmd = getStartCommand(language);
+          console.log(`✅ Listening for "${startCmd}" command...`);
           setRecognitionError(null);
           recognitionAttempts = 0; // Reset on successful start
           isRestarting = false;
@@ -408,9 +231,10 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
 
         recognition.onresult = (event) => {
           const transcript = event.results[event.resultIndex][0].transcript.toLowerCase().trim();
+          const startCmd = getStartCommand(language).toLowerCase();
           console.log('🎤 Heard:', transcript);
-          if (transcript.includes('start')) {
-            console.log('✅ Start command detected!');
+          if (transcript.includes(startCmd)) {
+            console.log(`✅ Start command "${startCmd}" detected!`);
             try {
               recognition.stop();
               recognition.abort();
@@ -549,22 +373,21 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     const step = recipe.steps[currentStepIndexRef.current];
     const stepNumber = currentStepIndexRef.current + 1;
     const totalSteps = recipe.steps.length;
+    const sayPrompt = getSayPrompt(language);
+    const stepText = getStepText(language, stepNumber, totalSteps);
     
-    let instructionText = `Step ${stepNumber} of ${totalSteps}. ${step.instruction}`;
+    let instructionText = `${stepText}. ${step.instruction}`;
     
     if (step.estimateSeconds > 0) {
       const minutes = Math.floor(step.estimateSeconds / 60);
       const seconds = step.estimateSeconds % 60;
-      if (minutes > 0 && seconds > 0) {
-        instructionText += ` This step takes approximately ${minutes} minute${minutes > 1 ? 's' : ''} and ${seconds} second${seconds > 1 ? 's' : ''}.`;
-      } else if (minutes > 0) {
-        instructionText += ` This step takes approximately ${minutes} minute${minutes > 1 ? 's' : ''}.`;
-      } else {
-        instructionText += ` This step takes approximately ${seconds} second${seconds > 1 ? 's' : ''}.`;
+      const timeText = getTimeText(language, minutes, seconds);
+      if (timeText) {
+        instructionText += ` ${timeText}`;
       }
-      instructionText += " Say 'start' when you're ready to begin the timer.";
+      instructionText += ` ${sayPrompt} to begin the timer.`;
     } else {
-      instructionText += " Say 'start' when you're ready for the next step.";
+      instructionText += ` ${sayPrompt} for the next step.`;
     }
 
     setCookingStatus('speaking');
@@ -593,9 +416,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
       // Use a short delay to ensure browser is ready
       const timeoutId = setTimeout(() => {
         // Cancel any existing speech first
-        if (synthRef.current?.speaking) {
-          synthRef.current.cancel();
-        }
+        cancelSpeech();
         // Small delay after cancel
         setTimeout(() => {
           speakCurrentInstruction();
@@ -638,9 +459,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     }
     
     // Stop any speech from ChatPage first
-    if (synthRef.current) {
-      synthRef.current.cancel();
-    }
+    cancelSpeech();
     
     // Call stopSpeaking to notify parent component
     if (onStopSpeaking) {
@@ -661,58 +480,46 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
       const step = recipe.steps[0];
       const stepNumber = 1;
       const totalSteps = recipe.steps.length;
+      const sayPrompt = getSayPrompt(language);
+      const stepText = getStepText(language, stepNumber, totalSteps);
       
-      let instructionText = `Step ${stepNumber} of ${totalSteps}. ${step.instruction}`;
+      let instructionText = `${stepText}. ${step.instruction}`;
       
       if (step.estimateSeconds > 0) {
         const minutes = Math.floor(step.estimateSeconds / 60);
         const seconds = step.estimateSeconds % 60;
-        if (minutes > 0 && seconds > 0) {
-          instructionText += ` This step takes approximately ${minutes} minute${minutes > 1 ? 's' : ''} and ${seconds} second${seconds > 1 ? 's' : ''}.`;
-        } else if (minutes > 0) {
-          instructionText += ` This step takes approximately ${minutes} minute${minutes > 1 ? 's' : ''}.`;
-        } else {
-          instructionText += ` This step takes approximately ${seconds} second${seconds > 1 ? 's' : ''}.`;
+        const timeText = getTimeText(language, minutes, seconds);
+        if (timeText) {
+          instructionText += ` ${timeText}`;
         }
-        instructionText += " Say 'start' when you're ready to begin the timer.";
+        instructionText += ` ${sayPrompt} to begin the timer.`;
       } else {
-        instructionText += " Say 'start' when you're ready for the next step.";
+        instructionText += ` ${sayPrompt} for the next step.`;
       }
       
-      // Speak IMMEDIATELY - no delays, no callbacks
-      const utterance = new SpeechSynthesisUtterance(instructionText);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+      // SPEAK IMMEDIATELY using enhanced speech synthesis
+      console.log('🔊 Speaking first instruction IMMEDIATELY from button click...');
+      setCookingStatus('speaking');
       
-      // Get voice
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-        utterance.voice = englishVoice;
-      }
-      
-      // Set callbacks
-      utterance.onend = () => {
-        setCookingStatus('waiting');
-        setIsWaitingForStart(true);
-        listenForStart();
-      };
-      
-      utterance.onerror = (e) => {
-        console.error('Speech error:', e.error);
-        if (e.error !== 'interrupted') {
+      enhancedSpeak(instructionText, language, {
+        rate: 0.9,
+        pitch: 1.0,
+        volume: 1.0,
+        onStart: () => {
+          console.log('✅ First instruction started speaking');
+        },
+        onEnd: () => {
           setCookingStatus('waiting');
           setIsWaitingForStart(true);
           listenForStart();
-        }
-      };
-      
-      // SPEAK IMMEDIATELY - this is critical for browser audio
-      console.log('🔊 Speaking first instruction IMMEDIATELY from button click...');
-      window.speechSynthesis.speak(utterance);
-      setCookingStatus('speaking');
+        },
+        onError: (e) => {
+          console.error('Speech error:', e);
+          setCookingStatus('waiting');
+          setIsWaitingForStart(true);
+          listenForStart();
+        },
+      });
     }
   };
 
@@ -771,9 +578,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     if (currentStepIndexRef.current < recipe.steps.length - 1) {
       console.log(`⏭ Step ${currentStepIndexRef.current + 1} skipped`);
       // Cancel current speech since user skipped
-      if (synthRef.current) {
-        synthRef.current.cancel();
-      }
+      cancelSpeech();
       // Wait a moment then proceed
       setTimeout(() => {
         proceedToNextStep();
@@ -781,9 +586,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
     } else {
       // Last step - just complete
       console.log('⏭ Last step skipped - recipe complete');
-      if (synthRef.current) {
-        synthRef.current.cancel();
-      }
+      cancelSpeech();
       setCookingStatus('complete');
       setIsWaitingForStart(false);
       setIsTimerRunning(false);
@@ -882,7 +685,7 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
                 ) : isWaitingForStart ? (
                   <div className="cook-waiting-status">
                     <div className="cook-waiting-icon">🎤</div>
-                    <div>Waiting for you to say "start"</div>
+                    <div>Waiting for you to say "{getStartCommand(language)}"</div>
                     {recognitionError && (
                       <div className="cook-recognition-error">
                         {recognitionError}
@@ -960,33 +763,30 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking }) {
                 testUtterance.volume = 1.0;
                 testUtterance.rate = 0.9;
                 testUtterance.pitch = 1.0;
-                testUtterance.lang = 'en-US';
+                testUtterance.lang = language;
                 
                 // Get voices
                 const voices = window.speechSynthesis.getVoices();
                 if (voices.length > 0) {
-                  const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-                  testUtterance.voice = englishVoice;
-                  console.log('Using voice:', englishVoice.name);
+                  const languageVoice = voices.find(v => v.lang === language) || 
+                                        voices.find(v => v.lang.startsWith(language.split('-')[0])) ||
+                                        voices[0];
+                  testUtterance.voice = languageVoice;
+                  console.log('Using voice:', languageVoice.name, 'for language:', language);
                 }
                 
                 // Cancel any existing speech
-                if (synthRef.current.speaking) {
-                  synthRef.current.cancel();
-                }
+                cancelSpeech();
                 
                 // Speak immediately
-                synthRef.current.speak(testUtterance);
-                
-                console.log('Test speech started. If you cannot hear it:');
-                console.log('1. Check system volume');
-                console.log('2. Check browser tab volume');
-                console.log('3. Check browser audio permissions');
-                console.log('4. Try a different browser');
-                
-                testUtterance.onstart = () => console.log('✅ Test speech started');
-                testUtterance.onend = () => console.log('✅ Test speech ended');
-                testUtterance.onerror = (e) => console.error('❌ Test speech error:', e.error);
+                enhancedSpeak('Testing speech synthesis. Can you hear this?', language, {
+                  rate: 0.9,
+                  pitch: 1.0,
+                  volume: 1.0,
+                  onStart: () => console.log('✅ Test speech started'),
+                  onEnd: () => console.log('✅ Test speech ended'),
+                  onError: (e) => console.error('❌ Test speech error:', e),
+                });
               }}
               className="btn-test-speech"
               title="Test if speech synthesis is working - click to hear test message"

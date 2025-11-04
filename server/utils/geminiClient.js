@@ -10,10 +10,32 @@ if (!GEMINI_KEY) {
 }
 
 module.exports = {
-  generateRecipe: async (prompt, tasteProfile = null) => {
+  generateRecipe: async (prompt, tasteProfile = null, languageCode = 'en-IN') => {
     try {
       const url = `${GEMINI_BASE}/models/${MODEL_NAME}:generateContent?key=${GEMINI_KEY}`;
 
+      // Map language codes to human-readable language names
+      const languageNames = {
+        'en-IN': 'English',
+        'en-GB': 'English',
+        'en-US': 'English',
+        'hi-IN': 'Hindi',
+        'mr-IN': 'Marathi',
+        'bn-IN': 'Bengali',
+        'pa-IN': 'Punjabi',
+        'ta-IN': 'Tamil',
+        'te-IN': 'Telugu',
+        'kn-IN': 'Kannada',
+        'ml-IN': 'Malayalam',
+        'gu-IN': 'Gujarati',
+        'es-ES': 'Spanish',
+        'fr-FR': 'French',
+        'de-DE': 'German',
+        'ar-SA': 'Arabic'
+      };
+      
+      const targetLanguage = languageNames[languageCode] || 'English';
+      
       // Enhance prompt with taste profile if available
       let enhancedPrompt = prompt;
       if (tasteProfile) {
@@ -35,17 +57,18 @@ module.exports = {
             role: "user",
             parts: [
               {
-                text: `You are a recipe generator. Respond ONLY with valid JSON in this exact format:
+                text: `You are a recipe generator. You MUST respond in ${targetLanguage} language. Respond ONLY with valid JSON in this exact format:
 {
-  "title": "string",
-  "summary": "short summary",
-  "ingredients": ["ingredient 1", "ingredient 2"],
+  "title": "string (in ${targetLanguage})",
+  "summary": "short summary (in ${targetLanguage})",
+  "ingredients": ["ingredient 1 (in ${targetLanguage})", "ingredient 2 (in ${targetLanguage})"],
   "steps": [
-    {"instruction": "step text", "estimateSeconds": 120}
+    {"instruction": "step text (in ${targetLanguage})", "estimateSeconds": 120}
   ]
 }
+IMPORTANT: All text fields (title, summary, ingredients, instructions) MUST be in ${targetLanguage} language.
 ${enhancedPrompt}
-Return only the JSON object with no extra commentary.`
+Return only the JSON object with no extra commentary. Remember: respond entirely in ${targetLanguage}.`
               }
             ]
           }

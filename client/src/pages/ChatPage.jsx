@@ -1,15 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import Header from '../components/Header';
 import api from '../utils/api';
 import { useParams } from 'react-router-dom';
 import ChatWindow from '../components/ChatWindow';
+import { AuthContext } from '../context/AuthContext';
+import { speak as enhancedSpeak, cancelSpeech, isSpeaking as checkIfSpeaking } from '../utils/speechSynthesis';
 
 export default function ChatPage(){
+  const { user } = useContext(AuthContext);
   const { id } = useParams(); // recipe id (optional)
   const [history, setHistory] = useState([]);
   const [recipe, setRecipe] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'en-IN');
+
+  useEffect(() => {
+    // Sync selected language with user preference
+    if (user?.language) {
+      setSelectedLanguage(user.language);
+    }
+  }, [user]);
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -27,41 +38,34 @@ export default function ChatPage(){
   }, [id]);
 
   const speakText = (text) => {
-    if (!synthRef.current || !text) return;
+    if (!text) return;
     
     // Stop any ongoing speech
-    synthRef.current.cancel();
+    cancelSpeech();
     setIsSpeaking(false);
     
-    // Create speech utterance
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9; // Slightly slower for better comprehension
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    
-    // Track when speech starts and ends
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-    };
-    
-    utterance.onend = () => {
-      setIsSpeaking(false);
-    };
-    
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-    };
-    
-    // Speak the text
-    synthRef.current.speak(utterance);
+    // Use enhanced speech synthesis with ResponsiveVoice support
+    enhancedSpeak(text, selectedLanguage, {
+      rate: 0.9,
+      pitch: 1,
+      volume: 1,
+      onStart: () => {
+        setIsSpeaking(true);
+        console.log(`🔊 Speaking in ${selectedLanguage}`);
+      },
+      onEnd: () => {
+        setIsSpeaking(false);
+      },
+      onError: (error) => {
+        console.error('Speech error:', error);
+        setIsSpeaking(false);
+      },
+    });
   };
 
   const stopSpeaking = () => {
-    if (synthRef.current) {
-      synthRef.current.cancel();
-      setIsSpeaking(false);
-    }
+    cancelSpeech();
+    setIsSpeaking(false);
   };
 
   const loadRecipe = async (rid) => {
@@ -85,8 +89,11 @@ export default function ChatPage(){
   const handleSendPrompt = async (prompt) => {
     // call backend route that invokes gemini (we already have generateAndSave)
     try {
-      // when new chat: POST /recipes/generate with { prompt } (controller will save)
-      const res = await api.post('/recipes/generate', { prompt });
+      // when new chat: POST /recipes/generate with { prompt, language } (controller will save)
+      const res = await api.post('/recipes/generate', { 
+        prompt,
+        language: selectedLanguage 
+      });
       // returned recipe saved => show its data
       setRecipe(res.data);
       // decode steps/summary from response

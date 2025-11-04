@@ -1,14 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CookMode from './CookMode';
 import TasteProfileInfo from './TasteProfileInfo';
+import { AuthContext } from '../context/AuthContext';
+import { LANGUAGES, getLanguageFlag, getLanguageSupportNote } from '../utils/languages';
 
 export default function ChatWindow({ history = [], onSend, isSpeaking = false, onStopSpeaking, recipe }) {
+  const { user, updateLanguage } = useContext(AuthContext);
   const [text, setText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'en-IN');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const recognitionRef = useRef(null);
   const interimTextRef = useRef('');
+  const languageDropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
+        setShowLanguageDropdown(false);
+      }
+    };
+
+    if (showLanguageDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showLanguageDropdown]);
+
+  useEffect(() => {
+    // Sync selected language with user preference
+    if (user?.language) {
+      setSelectedLanguage(user.language);
+    }
+  }, [user]);
 
   useEffect(() => {
     // Check if Web Speech API is supported
@@ -18,9 +48,10 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      recognition.lang = selectedLanguage;
 
       recognition.onstart = () => {
+        console.log(`✅ Speech recognition started for language: ${selectedLanguage}`);
         setIsListening(true);
         interimTextRef.current = '';
       };
@@ -31,6 +62,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
+          console.log(`Recognized text (${selectedLanguage}):`, transcript);
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
           } else {
@@ -56,7 +88,17 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       };
 
       recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+        console.error('Speech recognition error:', event.error, 'Language:', selectedLanguage);
+        
+        if (event.error === 'language-not-supported') {
+          console.warn(`⚠️ Language ${selectedLanguage} may not be fully supported by your browser`);
+          alert(`Speech recognition for ${selectedLanguage} may not be fully supported by your browser. Please try typing instead or switch to a supported language like English.`);
+        } else if (event.error === 'network') {
+          console.warn('⚠️ Network error - speech recognition requires internet connection');
+        } else if (event.error === 'not-allowed') {
+          console.warn('⚠️ Microphone permission denied');
+        }
+        
         setIsListening(false);
         if (event.error === 'no-speech') {
           // Auto-stop if no speech detected after timeout
@@ -65,6 +107,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       };
 
       recognition.onend = () => {
+        console.log('Speech recognition ended');
         setIsListening(false);
         // Clean up any remaining interim text
         if (interimTextRef.current) {
@@ -81,7 +124,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [selectedLanguage]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) return;
@@ -117,6 +160,31 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
     
     await onSend(text.trim());
     setText('');
+  };
+
+  const handleLanguageChange = async (langCode) => {
+    setSelectedLanguage(langCode);
+    setShowLanguageDropdown(false);
+    
+    // Stop current recognition if active
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+    
+    // Show support note if language has limited support
+    const supportNote = getLanguageSupportNote(langCode);
+    if (supportNote) {
+      console.log('⚠️', supportNote);
+      // Optionally show a brief toast notification
+    }
+    
+    // Update in backend
+    try {
+      await updateLanguage(langCode);
+    } catch (error) {
+      console.error('Failed to save language preference:', error);
+    }
   };
 
   return (
@@ -176,6 +244,43 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
 
         <form className="chat-input-container" onSubmit={submit}>
           <div className="chat-input-wrapper">
+            {/* Language Selector */}
+            <div className="language-selector" ref={languageDropdownRef}>
+              <button
+                type="button"
+                className="language-button"
+                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                title="Select language"
+              >
+                <span className="language-flag">{getLanguageFlag(selectedLanguage)}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 10l5 5 5-5z"/>
+                </svg>
+              </button>
+              
+              {showLanguageDropdown && (
+                <div className="language-dropdown">
+                  <div className="language-dropdown-header">Select Language</div>
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      className={`language-option ${selectedLanguage === lang.code ? 'active' : ''}`}
+                      onClick={() => handleLanguageChange(lang.code)}
+                    >
+                      <span className="language-flag">{lang.flag}</span>
+                      <span className="language-label">{lang.label}</span>
+                      {selectedLanguage === lang.code && (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <input 
               value={text} 
               onChange={e=>setText(e.target.value)} 
@@ -239,6 +344,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
         recipe={recipe} 
         onSpeak={() => {}} 
         onStopSpeaking={onStopSpeaking}
+        language={selectedLanguage}
       />
     </div>
   );

@@ -123,7 +123,7 @@ function normalizeRecipe(parsed, prompt, titleFallback = null) {
 
 exports.generateAndSave = async (req, res) => {
   try {
-    const { prompt, title } = req.body;
+    const { prompt, title, language } = req.body;
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ message: 'Prompt is required' });
     }
@@ -162,8 +162,9 @@ exports.generateAndSave = async (req, res) => {
       }
     }
 
-    // Call Gemini via your geminiClient wrapper, passing taste profile
-    const gen = await gemini.generateRecipe(prompt, tasteProfile);
+    // Call Gemini via your geminiClient wrapper, passing taste profile and language
+    const languageCode = language || 'en-IN';
+    const gen = await gemini.generateRecipe(prompt, tasteProfile, languageCode);
 
     // Extract and parse JSON recipe from response
     const parsed = extractJsonTextFromGemini(gen);

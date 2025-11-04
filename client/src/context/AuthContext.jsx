@@ -32,8 +32,19 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateLanguage = async (language) => {
+    try {
+      const response = await api.put('/auth/language', { language });
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      console.error('Failed to update language:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, updateLanguage, loading }}>
       {children}
     </AuthContext.Provider>
   );
