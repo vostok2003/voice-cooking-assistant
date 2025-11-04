@@ -63,6 +63,8 @@ function normalizeRecipe(parsed, prompt, titleFallback = null) {
     titleFallback ||
     'Generated Recipe';
   recipe.summary = parsed?.summary || parsed?.description || '';
+  recipe.originalServings = parsed?.servings || 2; // Save original servings
+  
   // Convert ingredients to array of strings
   if (Array.isArray(parsed?.ingredients)) {
     recipe.ingredients = parsed.ingredients.map((i) =>

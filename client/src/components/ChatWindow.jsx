@@ -4,6 +4,7 @@ import CookMode from './CookMode';
 import TasteProfileInfo from './TasteProfileInfo';
 import { AuthContext } from '../context/AuthContext';
 import { LANGUAGES, getLanguageFlag, getLanguageSupportNote } from '../utils/languages';
+import { scaleRecipe, getTimeAdjustmentText } from '../utils/recipeScaler';
 
 export default function ChatWindow({ history = [], onSend, isSpeaking = false, onStopSpeaking, recipe }) {
   const { user, updateLanguage, updateSpeechSpeed } = useContext(AuthContext);
@@ -14,10 +15,14 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
   const [speechSpeed, setSpeechSpeed] = useState(user?.speechSpeed || 1.0);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
+  const [showServingsDropdown, setShowServingsDropdown] = useState(false);
+  const [servings, setServings] = useState(recipe?.originalServings || 2);
+  const [scaledRecipe, setScaledRecipe] = useState(null);
   const recognitionRef = useRef(null);
   const interimTextRef = useRef('');
   const languageDropdownRef = useRef(null);
   const speedDropdownRef = useRef(null);
+  const servingsDropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,16 +33,19 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       if (speedDropdownRef.current && !speedDropdownRef.current.contains(event.target)) {
         setShowSpeedDropdown(false);
       }
+      if (servingsDropdownRef.current && !servingsDropdownRef.current.contains(event.target)) {
+        setShowServingsDropdown(false);
+      }
     };
 
-    if (showLanguageDropdown || showSpeedDropdown) {
+    if (showLanguageDropdown || showSpeedDropdown || showServingsDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showLanguageDropdown, showSpeedDropdown]);
+  }, [showLanguageDropdown, showSpeedDropdown, showServingsDropdown]);
 
   useEffect(() => {
     // Sync selected language and speed with user preference
@@ -48,6 +56,26 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       setSpeechSpeed(user.speechSpeed);
     }
   }, [user]);
+
+  // Scale recipe when servings change
+  useEffect(() => {
+    if (recipe) {
+      console.log('📊 Recipe detected:', recipe);
+      console.log('📊 Original servings:', recipe.originalServings);
+      const scaled = scaleRecipe(recipe, servings);
+      setScaledRecipe(scaled);
+    } else {
+      console.log('📊 No recipe available');
+      setScaledRecipe(null);
+    }
+  }, [recipe, servings]);
+
+  // Initialize servings when recipe first loads
+  useEffect(() => {
+    if (recipe?.originalServings) {
+      setServings(recipe.originalServings);
+    }
+  }, [recipe?._id]); // Only run when recipe ID changes (new recipe)
 
   useEffect(() => {
     // Check if Web Speech API is supported
@@ -208,6 +236,18 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
     }
   };
 
+  const handleServingsChange = (newServings) => {
+    console.log('🍽️ Servings change clicked:', newServings);
+    setServings(newServings);
+    setShowServingsDropdown(false);
+    
+    // Show time adjustment message
+    if (recipe?.originalServings && newServings !== recipe.originalServings) {
+      const timeMsg = getTimeAdjustmentText(recipe.originalServings, newServings, selectedLanguage);
+      console.log('⏱️', timeMsg);
+    }
+  };
+
   return (
     <div className="chat-window-container">
       <div className="chat-window glass-card">
@@ -344,6 +384,57 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
               )}
             </div>
 
+            {/* Servings Selector - Only show when recipe exists */}
+            {recipe && (
+              <div className="servings-selector" ref={servingsDropdownRef}>
+                <button
+                  type="button"
+                  className="servings-button"
+                  onClick={() => {
+                    console.log('🍽️ Servings button clicked, current state:', showServingsDropdown);
+                    setShowServingsDropdown(!showServingsDropdown);
+                  }}
+                  title="Adjust servings"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>
+                    <path d="M11 7h2v10h-2z"/>
+                  </svg>
+                  <span className="servings-label">{servings} servings</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                  </svg>
+                </button>
+                
+                {showServingsDropdown && (
+                  <div className="servings-dropdown">
+                    <div className="servings-dropdown-header">Adjust Servings</div>
+                    {[1, 2, 3, 4, 5, 6, 8, 10, 12].map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        className={`servings-option ${servings === count ? 'active' : ''}`}
+                        onClick={() => {
+                          console.log('🍽️ Servings option clicked:', count);
+                          handleServingsChange(count);
+                        }}
+                      >
+                        <span className="servings-count">{count}</span>
+                        <span className="servings-description">
+                          {count === 1 ? 'person' : `people`}
+                        </span>
+                        {servings === count && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <input 
               value={text} 
               onChange={e=>setText(e.target.value)} 
@@ -404,7 +495,7 @@ export default function ChatWindow({ history = [], onSend, isSpeaking = false, o
       </div>
 
       <CookMode 
-        recipe={recipe} 
+        recipe={scaledRecipe || recipe} 
         onSpeak={() => {}} 
         onStopSpeaking={onStopSpeaking}
         language={selectedLanguage}

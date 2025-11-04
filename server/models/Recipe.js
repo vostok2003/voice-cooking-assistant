@@ -12,6 +12,7 @@ const recipeSchema = new mongoose.Schema({
   summary: String,
   ingredients: [String],
   steps: [stepSchema],
+  originalServings: { type: Number, default: 2 }, // Original servings from Gemini
   geminiRaw: { type: mongoose.Schema.Types.Mixed },
   // Taste profile fields
   tasteRating: {

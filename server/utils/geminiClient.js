@@ -61,12 +61,17 @@ module.exports = {
 {
   "title": "string (in ${targetLanguage})",
   "summary": "short summary (in ${targetLanguage})",
-  "ingredients": ["ingredient 1 (in ${targetLanguage})", "ingredient 2 (in ${targetLanguage})"],
+  "servings": 2,
+  "ingredients": ["300g ingredient 1 (in ${targetLanguage})", "2 cups ingredient 2 (in ${targetLanguage})"],
   "steps": [
     {"instruction": "step text (in ${targetLanguage})", "estimateSeconds": 120}
   ]
 }
-IMPORTANT: All text fields (title, summary, ingredients, instructions) MUST be in ${targetLanguage} language.
+IMPORTANT: 
+- All text fields (title, summary, ingredients, instructions) MUST be in ${targetLanguage} language.
+- Include quantities with units in ingredients (e.g., "300g paneer", "2 cups rice", "1 tbsp oil").
+- Set servings to 2 by default.
+- Provide realistic cooking times in estimateSeconds.
 ${enhancedPrompt}
 Return only the JSON object with no extra commentary. Remember: respond entirely in ${targetLanguage}.`
               }

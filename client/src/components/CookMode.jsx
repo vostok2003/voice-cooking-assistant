@@ -659,6 +659,25 @@ export default function CookMode({ recipe, onSpeak, onStopSpeaking, language = '
             </button>
           </div>
 
+          {/* Ingredients List - Shows scaled quantities */}
+          {recipe.ingredients && recipe.ingredients.length > 0 && (
+            <div className="cook-ingredients-section">
+              <h4>📋 Ingredients {recipe.currentServings && `(${recipe.currentServings} servings)`}</h4>
+              <ul className="cook-ingredients-list">
+                {recipe.ingredients.map((ingredient, idx) => (
+                  <li key={idx} className="cook-ingredient-item">
+                    {ingredient}
+                  </li>
+                ))}
+              </ul>
+              {recipe.scaleFactor && recipe.scaleFactor !== 1 && (
+                <div className="cook-scale-info">
+                  ℹ️ Ingredients scaled by {recipe.scaleFactor}x from original recipe
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="cook-progress">
             <div className="cook-progress-bar">
               <div 
