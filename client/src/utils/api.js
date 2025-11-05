@@ -19,7 +19,7 @@ const getBaseURL = () => {
 const base = getBaseURL();
 const instance = axios.create({ baseURL: base });
 
-console.log('🔗 API Base URL:', base); // Debug log to verify
+console.log('🔗 API Base URL:', base); // Debug: verify correct endpoint is used
 
 export const setAuthToken = token => {
   if (token) instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
