@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Header from "../components/Header";
-import "./landing-animated.css";
+import "./Landing-animated.css";
 
 const container = {
   hidden: { opacity: 0 },
