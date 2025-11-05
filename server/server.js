@@ -5,7 +5,33 @@ const connectDB = require('./config/db');
 
 connectDB();
 const app = express();
-app.use(cors());
+
+// CORS configuration - allow requests from Vercel frontend
+const allowedOrigins = [
+  'https://voice-cooking-assistant-coral.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Allow if origin is in allowedOrigins or matches *.vercel.app pattern
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Healthcheck
