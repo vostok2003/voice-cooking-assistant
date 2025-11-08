@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import api from '../utils/api';
+import api, { warmUpBackend } from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import Header from '../components/Header';
 import '../auth.css';
@@ -38,10 +38,21 @@ export default function Login() {
     if (!email || !password) return;
     setIsSubmitting(true);
     try {
+      await warmUpBackend();
       const res = await api.post('/auth/login', { email, password });
       login(res.data.token, res.data.user);
       nav('/app');
     } catch (err) {
+      const status = err?.response?.status;
+      if (!status || status === 503) {
+        try {
+          await warmUpBackend();
+          const res = await api.post('/auth/login', { email, password });
+          login(res.data.token, res.data.user);
+          nav('/app');
+          return;
+        } catch (_) {}
+      }
       const msg = err?.response?.data?.message || 'Login failed. Please check credentials and try again.';
       alert(msg);
     } finally {

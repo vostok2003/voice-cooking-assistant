@@ -26,4 +26,12 @@ export const setAuthToken = token => {
   else delete instance.defaults.headers.common['Authorization'];
 };
 
+export const warmUpBackend = async () => {
+  try {
+    const root = base.endsWith('/api') ? base.slice(0, -4) : base;
+    await fetch(root, { mode: 'no-cors' });
+    await new Promise(r => setTimeout(r, 1200));
+  } catch (_) {}
+};
+
 export default instance;
